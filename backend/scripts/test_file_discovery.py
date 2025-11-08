@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from agents.file_discovery_agent import FileDiscoveryAgent
 from agents.adaptive_parser import AdaptiveParsingAgent
-from agents.anthropic_llm import AnthropicLLMClient
+from agents.openrouter_llm import OpenRouterLLMClient
 from database.connection import init_database
 from loaders.database_loader import DatabaseLoader
 from validation.data_validator import DataValidator
@@ -30,7 +30,7 @@ def test_url_discovery():
     logger.info("TEST 1: URL Discovery for Known Hospitals")
     logger.info("=" * 80)
     
-    llm = AnthropicLLMClient()
+    llm = OpenRouterLLMClient()
     discovery_agent = FileDiscoveryAgent(llm_client=llm)
     
     # Test with known hospitals
@@ -75,7 +75,7 @@ def test_location_discovery():
     logger.info("TEST 2: Hospital Discovery by Location")
     logger.info("=" * 80)
     
-    llm = AnthropicLLMClient()
+    llm = OpenRouterLLMClient()
     discovery_agent = FileDiscoveryAgent(llm_client=llm)
     
     logger.info("\nSearching for hospitals in: Joplin, MO")
@@ -105,7 +105,7 @@ def test_full_pipeline_with_discovery():
     logger.info("=" * 80)
     
     # Initialize components
-    llm = AnthropicLLMClient()
+    llm = OpenRouterLLMClient()
     discovery_agent = FileDiscoveryAgent(llm_client=llm)
     parser = AdaptiveParsingAgent(llm_client=llm)
     validator = DataValidator()
