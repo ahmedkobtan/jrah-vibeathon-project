@@ -1,0 +1,14 @@
+hospital_name,npi,code,description,payer,rate,gross_charge
+Freeman Health System,1234567890,70553,MRI brain without and with contrast,Blue Cross Blue Shield Missouri,1250.00,3500.00
+Freeman Health System,1234567890,70553,MRI brain without and with contrast,Medicare,423.00,3500.00
+Freeman Health System,1234567890,70553,MRI brain without and with contrast,UnitedHealthcare,1350.00,3500.00
+Freeman Health System,1234567890,73721,MRI knee without contrast,Blue Cross Blue Shield Missouri,825.00,2500.00
+Freeman Health System,1234567890,73721,MRI knee without contrast,Medicare,275.00,2500.00
+Freeman Health System,1234567890,99213,Office visit level 3,Blue Cross Blue Shield Missouri,150.00,250.00
+Freeman Health System,1234567890,99213,Office visit level 3,Medicare,93.00,250.00
+Freeman Health System,1234567890,29881,Knee arthroscopy,Blue Cross Blue Shield Missouri,2500.00,8000.00
+Freeman Health System,1234567890,29881,Knee arthroscopy,Medicare,850.00,8000.00
+Mercy Hospital Joplin,2345678901,70553,MRI brain without and with contrast,Blue Cross Blue Shield Missouri,1350.00,3700.00
+Mercy Hospital Joplin,2345678901,70553,MRI brain without and with contrast,Medicare,423.00,3700.00
+Mercy Hospital Joplin,2345678901,73721,MRI knee without contrast,Blue Cross Blue Shield Missouri,875.00,2600.00
+Mercy Hospital Joplin,2345678901,99213,Office visit level 3,Blue Cross Blue Shield Missouri,165.00,270.00

@@ -1,0 +1,62 @@
+[
+  {
+    "cpt_code": "70553",
+    "description": "MRI brain without and with contrast",
+    "category": "Imaging",
+    "medicare_rate": 423.00
+  },
+  {
+    "cpt_code": "70450",
+    "description": "CT scan head/brain without contrast",
+    "category": "Imaging",
+    "medicare_rate": 234.00
+  },
+  {
+    "cpt_code": "73721",
+    "description": "MRI lower extremity (knee) without contrast",
+    "category": "Imaging",
+    "medicare_rate": 275.00
+  },
+  {
+    "cpt_code": "99213",
+    "description": "Office visit established patient level 3",
+    "category": "Office Visit",
+    "medicare_rate": 93.00
+  },
+  {
+    "cpt_code": "99214",
+    "description": "Office visit established patient level 4",
+    "category": "Office Visit",
+    "medicare_rate": 132.00
+  },
+  {
+    "cpt_code": "29881",
+    "description": "Knee arthroscopy/surgery",
+    "category": "Surgery",
+    "medicare_rate": 850.00
+  },
+  {
+    "cpt_code": "45378",
+    "description": "Colonoscopy",
+    "category": "Procedure",
+    "medicare_rate": 350.00
+  },
+  {
+    "cpt_code": "36415",
+    "description": "Blood draw venipuncture",
+    "category": "Lab",
+    "medicare_rate": 3.00
+  },
+  {
+    "cpt_code": "80053",
+    "description": "Comprehensive metabolic panel",
+    "category": "Lab",
+    "medicare_rate": 14.00
+  },
+  {
+    "cpt_code": "85025",
+    "description": "Complete blood count (CBC)",
+    "category": "Lab",
+    "medicare_rate": 11.00
+  }
+]

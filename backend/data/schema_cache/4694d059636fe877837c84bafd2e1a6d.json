@@ -1,0 +1,9 @@
+{
+  "provider_name": "hospital_name",
+  "provider_npi": "npi",
+  "cpt_code": "code",
+  "procedure_description": "description",
+  "payer_name": "payer",
+  "negotiated_rate": "rate",
+  "standard_charge": "gross_charge"
+}

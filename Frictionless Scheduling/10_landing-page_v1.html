@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedHarmony - Harmonized Care, Simplified Scheduling</title>
+    <style>
+        :root {
+            --primary-color: #002C5F;
+            --secondary-color: #008080;
+            --accent-color: #50C878;
+            --text-color: #333;
+            --bg-color: #fff;
+            --font-family: 'Arial', sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+        }
+        header {
+            padding: 20px;
+            text-align: center;
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+        }
+        header h1 {
+            margin: 0;
+            letter-spacing: 2px;
+            font-weight: bold;
+            font-size: 2.2rem;
+        }
+        main {
+            padding: 2rem 1rem 1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .hero {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .hero h2 {
+            color: var(--primary-color);
+            font-size: clamp(1.5rem, 4vw, 2.7rem);
+            margin-bottom: 0.7rem;
+        }
+        .hero p {
+            color: var(--secondary-color);
+            font-size: 1.09rem;
+            margin-bottom: 1.35rem;
+        }
+        .cta-button {
+            background: linear-gradient(90deg, var(--accent-color) 45%, var(--secondary-color) 100%);
+            color: var(--bg-color);
+            padding: 0.85rem 2.5rem;
+            font-size: 1.13rem;
+            text-decoration: none;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            box-shadow: 0 6px 20px rgba(0,44,95,0.12);
+            cursor: pointer;
+            transition: background 0.3s, box-shadow 0.3s;
+            margin-top: 12px;
+            display: inline-block;
+        }
+        .cta-button:hover {
+            background: linear-gradient(90deg, var(--secondary-color) 60%, var(--accent-color) 100%);
+            box-shadow: 0 8px 32px rgba(0,44,95,0.18);
+        }
+        .section {
+            margin-top: 2.3rem;
+            text-align: center;
+        }
+        .section h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.35rem;
+        }
+        .section p {
+            color: var(--text-color);
+            margin-bottom: 0;
+            font-size: 1rem;
+        }
+        .feature-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 1.8rem;
+            gap: 1.3rem;
+        }
+        .feature {
+            background: #F8FAFB;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0,44,95,0.07);
+            padding: 1.3rem 1.2rem;
+            min-width: 220px;
+            max-width: 270px;
+            flex: 1 1 220px;
+            transition: transform 0.2s, box-shadow 0.23s;
+        }
+        .feature:hover {
+            transform: translateY(-6px) scale(1.035);
+            box-shadow: 0 6px 30px rgba(0,128,128,0.14);
+        }
+        .feature h4 {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .feature p {
+            color: #444;
+            font-size: 0.98rem;
+        }
+        .testimonial {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid #C0C0C0;
+            border-radius: 12px;
+            padding: 1.2rem 1rem;
+            box-shadow: 0 2px 12px rgba(80,200,120,0.08);
+            margin: 1.5rem 0;
+            max-width: 520px;
+        }
+        .testimonial-quote {
+            font-style: italic;
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+            font-size: 1.07rem;
+        }
+        .testimonial-author {
+            text-align: right;
+            color: var(--secondary-color);
+            margin-top: 0.2rem;
+            font-size: 0.94rem;
+        }
+        footer {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: var(--bg-color);
+            padding: 13px 0;
+            text-align: center;
+            font-size: 1rem;
+            letter-spacing: 0.04em;
+            margin-top: 2rem;
+        }
+        @media (max-width: 1024px) {
+            main {
+                max-width: 98vw;
+            }
+        }
+        @media (max-width: 600px) {
+            .feature-grid {
+                flex-direction: column;
+                gap: 1.1rem;
+            }
+            .feature {
+                max-width: 98vw;
+            }
+            main {
+                padding: 14px;
+            }
+            header h1 {
+                font-size: 1.35rem;
+            }
+            .hero h2 { font-size: 1.15rem; }
+        }
+    </style>
+</head>
+<body>
+    <header aria-label="MedHarmony brand">
+        <h1>MedHarmony</h1>
+    </header>
+    <main>
+        <section class="hero">
+            <h2>Harmonized Care, Simplified Scheduling</h2>
+            <p>Experience real-time AI-powered scheduling that integrates effortlessly with your existing healthcare systems—removing inefficiencies so you can focus on what matters most: your patients.</p>
+            <a href="#register" class="cta-button">Register for Early Access</a>
+        </section>
+        <section class="section" id="problem">
+            <h3>The Problem</h3>
+            <p>Manual scheduling and incompatible systems increase frustration, errors, and wasted time for both patients and healthcare providers.</p>
+        </section>
+        <section class="section" id="solution">
+            <h3>Our Solution</h3>
+            <p>MedHarmony delivers an AI-driven scheduler with seamless EHR integration and a user-friendly interface—reducing admin burden and ensuring appointments are always organized, accurate, and timely.</p>
+        </section>
+        <section class="section" id="features">
+            <h3>Key Features & Benefits</h3>
+            <div class="feature-grid">
+                <div class="feature">
+                    <h4>AI-Driven Scheduling</h4>
+                    <p>Automates appointment booking, minimizes no-shows, and optimizes provider calendars for improved care flow.</p>
+                </div>
+                <div class="feature">
+                    <h4>Seamless Integration</h4>
+                    <p>Instant interoperability with existing EHR systems streamlines your workflow without disruption.</p>
+                </div>
+                <div class="feature">
+                    <h4>User-Friendly Interface</h4>
+                    <p>Reduces the administrative burden with simple, intuitive design—making scheduling easy for all users.</p>
+                </div>
+                <div class="feature">
+                    <h4>Real-Time Interaction</h4>
+                    <p>Provides instant updates, notifications, and engagement for both staff and patients.</p>
+                </div>
+            </div>
+        </section>
+        <section class="section" id="social-proof">
+            <div class="testimonial">
+                <span class="testimonial-quote">“MedHarmony has significantly streamlined our scheduling and reduced no-shows—our staff and patients love the intuitive interface.”</span>
+                <span class="testimonial-author">— Dr. Julia Fernandez, Clinic Director</span>
+            </div>
+        </section>
+        <section class="section" id="register">
+            <h3>Be First to Experience Harmonized Scheduling</h3>
+            <p><strong>Register for early access</strong> and join leading healthcare providers optimizing appointments and admin workflows.</p>
+            <a href="#" class="cta-button">Register for Early Access</a>
+        </section>
+    </main>
+    <footer>
+        <p>Contact Us: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="93fafdf5fcd3fef6f7fbf2e1fefcfdeabdf0fcfe">[email&#160;protected]</a> | +1 234 567 890</p>
+        <p>&copy; 2024 MedHarmony</p>
+    </footer>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>

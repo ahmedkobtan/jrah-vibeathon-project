@@ -1,0 +1,38 @@
+[
+  {
+    "npi": "1234567890",
+    "name": "Freeman Health System",
+    "address": "1102 W 32nd St",
+    "city": "Joplin",
+    "state": "MO",
+    "zip": "64804",
+    "latitude": 37.0842,
+    "longitude": -94.5133,
+    "phone": "(417) 347-1111",
+    "website": "https://www.freemanhealth.com"
+  },
+  {
+    "npi": "2345678901",
+    "name": "Mercy Hospital Joplin",
+    "address": "2817 St Johns Blvd",
+    "city": "Joplin",
+    "state": "MO",
+    "zip": "64804",
+    "latitude": 37.0612,
+    "longitude": -94.4991,
+    "phone": "(417) 781-2727",
+    "website": "https://www.mercy.net"
+  },
+  {
+    "npi": "3456789012",
+    "name": "Freeman Neosho Hospital",
+    "address": "113 W Hickory St",
+    "city": "Neosho",
+    "state": "MO",
+    "zip": "64850",
+    "latitude": 36.8689,
+    "longitude": -94.3679,
+    "phone": "(417) 451-1234",
+    "website": "https://www.freemanhealth.com/neosho"
+  }
+]

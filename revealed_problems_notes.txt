@@ -1,0 +1,21 @@
+scheduling
+- check schedules all around the area (with insurance?)
+- trickle/flow can be input
+- customizable with inputs
+
+financial navigation:
+- MRIs cost in this area, here is cost (avg?)
+- with this insurance here is cost
+- every employer publish financial file, healthcare
+every carrier publishes provider directories, pricing navigraion pieces,
+every health syste poossts pricing transparency systems, show pricing, reimbursement billable price is, show for most of the carriers
+cms show medicare and medicaid schedules
+
+- go online and find out ct scan out of pocket cost 400 $ or 4000$ 
+- make billing based choices, then flow to schedules
+
+
+
+referral and care navigation
+- more than 1 phone call
+- health care try to refer in-network, keep patient in EHR (Electronic health record)

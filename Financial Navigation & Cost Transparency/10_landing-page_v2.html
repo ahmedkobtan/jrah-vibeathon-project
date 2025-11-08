@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BillHarmony – Bringing Clarity to Care Costs</title>
+  <style>
+    :root {
+      --primary-blue: #2176ae;
+      --primary-green: #43b881;
+      --accent-teal: #20cceb;
+      --accent-gold: #fac240;
+      --neutral-white: #fff;
+      --neutral-gray: #f5f9fb;
+      --text-main: #1a2233;
+      --text-muted: #6a7891;
+      --font-main: 'Segoe UI', Arial, sans-serif;
+      --font-heading: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    }
+    html { box-sizing: border-box; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body {
+      font-family: var(--font-main);
+      color: var(--text-main);
+      background: var(--neutral-white);
+      margin: 0;
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(90deg, var(--primary-blue) 85%, var(--primary-green) 100%);
+      padding: 1.7rem 2.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 3px 12px rgba(33,118,174,0.07);
+    }
+    .logo {
+      font-family: var(--font-heading);
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--neutral-white);
+      letter-spacing: 1.7px;
+      display: flex;
+      align-items: center;
+    }
+    .logo .wave {
+      display: inline-block;
+      width: 1.15em;
+      height: 1em;
+      background: linear-gradient(90deg, var(--accent-teal) 10%, var(--primary-green) 70%, var(--accent-gold));
+      border-radius: 50% 55% 50% 50% / 60% 45% 55% 55%;
+      margin: 0 .35em;
+      box-shadow: 0 2px 9px rgba(32,204,235,0.09);
+    }
+    .logo small {
+      font-size: 1.01rem;
+      color: var(--accent-gold);
+      margin-left: .8em;
+      font-weight: 600;
+      vertical-align: middle;
+    }
+    .hero {
+      background: linear-gradient(115deg, var(--primary-blue) 72%, var(--primary-green) 100%);
+      color: var(--neutral-white);
+      text-align: center;
+      padding: 4.1rem 1.3rem 3.6rem;
+    }
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(2.3rem, 6vw, 3.2rem);
+      margin: 0 0 0.7rem;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+    }
+    .hero .tagline {
+      font-size: 1.24rem;
+      margin-bottom: 2.1rem;
+      color: var(--accent-gold);
+      max-width: 650px;
+      margin-left: auto;
+      margin-right: auto;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+    .cta-btn {
+      padding: 1rem 2.5rem;
+      border: none;
+      border-radius: 2.8rem;
+      background: var(--accent-gold);
+      color: var(--primary-blue);
+      font-size: 1.18rem;
+      font-weight: bold;
+      font-family: var(--font-heading);
+      cursor: pointer;
+      box-shadow: 0 3px 20px rgba(250,194,64,0.21);
+      transition: background .24s, color .22s, box-shadow .22s;
+    }
+    .cta-btn:hover, .cta-btn:focus {
+      background: var(--primary-green);
+      color: var(--neutral-white);
+      outline: none;
+      box-shadow: 0 8px 30px rgba(67,184,129,0.15);
+    }
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    section {
+      margin: 2.7rem 0;
+    }
+    .problem, .solution {
+      background: var(--neutral-gray);
+      border-radius: 1.25rem;
+      padding: 2rem 1.5rem 1.4rem 1.5rem;
+      margin-bottom: 1.7rem;
+      box-shadow: 0 1px 6px rgba(33,118,174,0.06);
+    }
+    .problem h2, .solution h2 {
+      font-family: var(--font-heading);
+      font-size: 1.17rem;
+      margin-bottom: .5rem;
+      font-weight: 700;
+    }
+    .problem h2 {
+      color: var(--primary-blue);
+    }
+    .solution h2 {
+      color: var(--primary-green);
+    }
+    .problem p, .solution p {
+      font-size: 1.07rem;
+      color: var(--text-muted);
+    }
+    .features {
+      margin-top: 2.8rem;
+    }
+    .features h2 {
+      font-family: var(--font-heading);
+      color: var(--primary-blue);
+      font-size: 1.17rem;
+      margin-bottom:1.2rem;
+      font-weight: 700;
+    }
+    .feature-list {
+      display: grid;
+      grid-gap: 1.5rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 700px) {
+      .feature-list {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .feature {
+      background: #fff;
+      border-left: 6px solid var(--primary-green);
+      border-radius: 1rem;
+      padding: 1.22rem 1.25rem 1rem 1.4rem;
+      box-shadow: 0 2px 10px rgba(67,184,129,0.08);
+      transition: box-shadow .20s, transform .17s;
+      position: relative;
+    }
+    .feature h3 {
+      font-family: var(--font-heading);
+      color: var(--accent-teal);
+      font-size: 1.13rem;
+      margin: 0 0 0.36rem 0;
+      font-weight: 700;
+    }
+    .feature p {
+      margin: 0;
+      font-size: 1.03rem;
+      color: var(--text-main);
+    }
+    .social-proof {
+      text-align: center;
+      margin-top: 3rem;
+    }
+    .social-proof h2 {
+      font-family: var(--font-heading);
+      color: var(--primary-green);
+      font-size: 1.13rem;
+      margin-bottom: 1.2rem;
+      font-weight: 700;
+    }
+    .testimonials {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+    @media (min-width: 700px) {
+      .testimonials {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+    .testimonial {
+      background: #fff;
+      border-radius: 0.95rem;
+      padding: 1.3rem 1.15rem;
+      box-shadow: 0 2px 9px rgba(67,184,129,0.07);
+      max-width: 330px;
+      font-size: 1.01rem;
+      color: var(--text-main);
+      font-style: italic;
+      transition: box-shadow .19s;
+    }
+    .testimonial:hover {
+      box-shadow: 0 8px 24px rgba(32,204,235, 0.12);
+    }
+    .testimonial .author {
+      font-weight: bold;
+      color: var(--primary-blue);
+      font-family: var(--font-heading);
+      font-size: .97rem;
+      margin-top: 0.5rem;
+    }
+    .final-cta {
+      text-align: center;
+      margin: 2.7rem 0 2rem;
+    }
+    .final-cta .cta-btn {
+      font-size: 1.19rem;
+      padding: 1.18rem 2.38rem;
+    }
+    footer {
+      background: var(--primary-blue);
+      color: #fff;
+      padding: 1.8rem 1.2rem 1.3rem;
+      text-align: center;
+      font-size: .97rem;
+    }
+    .footer-links {
+      margin: 0.7rem 0 0.9rem;
+    }
+    .footer-links a {
+      color: var(--accent-gold);
+      text-decoration: none;
+      margin: 0 0.9rem;
+      transition: color .21s;
+    }
+    .footer-links a:hover {
+      color: var(--neutral-white);
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Bill<span class="wave"></span>Harmony <small>Bringing Clarity to Care Costs</small></div>
+  </header>
+  <section class="hero">
+    <h1>Universal Transparency in Healthcare Billing</h1>
+    <div class="tagline">The first adaptable billing platform for providers, payors, and patients—offering total clarity and understanding across every payment system.</div>
+    <a href="#early-access" class="cta-btn">Sign Up for Early Access</a>
+  </section>
+  <main>
+    <section class="problem">
+      <h2>The Problem</h2>
+      <p>Providers, payors, and patients are burdened by unclear bills, opaque pricing, and complicated eligibility rules across multiple payment models. This confusion wastes time, causes mistrust, and creates avoidable financial stress—preventing effective care and decision-making.</p>
+    </section>
+    <section class="solution">
+      <h2>BillHarmony's Solution</h2>
+      <p>BillHarmony is a flexible, AI-powered platform that unifies billing and eligibility data across all payor systems. Our modular, user-friendly design delivers instant, transparent financial insights to every stakeholder—transforming confusion into clarity and enabling confident choices for providers, payors, and patients alike.</p>
+    </section>
+    <section class="features">
+      <h2>Key Benefits</h2>
+      <div class="feature-list">
+        <div class="feature">
+          <h3>Universal Multi-Payor Integration</h3>
+          <p>Adaptively connects to all public, private, and hybrid payor systems, ensuring coverage for every billing scenario.</p>
+        </div>
+        <div class="feature">
+          <h3>Transparent, Real-Time Insights</h3>
+          <p>Instantly displays clear billing breakdowns and eligibility status, so no one is left in the dark—ever.</p>
+        </div>
+        <div class="feature">
+          <h3>Modular, Flexible Platform</h3>
+          <p>Customizable solutions match the needs of each institution, department, or patient journey—scale with ease.</p>
+        </div>
+        <div class="feature">
+          <h3>Exclusive Partnerships & Support</h3>
+          <p>Strategic alliances and hands-on integration assistance ensure successful adoption for both small providers and large healthcare systems.</p>
+        </div>
+      </div>
+    </section>
+    <section class="social-proof">
+      <h2>Trusted by Healthcare Leaders</h2>
+      <div class="testimonials">
+        <div class="testimonial">"BillHarmony gave our clinicians and billing teams the clarity they've needed for years. Integration was seamless and our patients are finally informed." <span class="author">– Dr. Rebecca Lin, Chief Medical Officer</span></div>
+        <div class="testimonial">"Our claims resolutions are faster, and confusion over patient responsibility is finally a thing of the past." <span class="author">– Julia M., Revenue Cycle Admin</span></div>
+        <div class="testimonial">"As a patient, BillHarmony helps me understand exactly what I owe and why. I trust my bills now." <span class="author">– Samuel R., Patient</span></div>
+      </div>
+    </section>
+    <section id="early-access" class="final-cta">
+      <a href="#" class="cta-btn">Sign Up for Early Access</a>
+    </section>
+  </main>
+  <footer>
+    <div>BillHarmony &copy; 2024. All rights reserved.</div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a> |
+      <a href="#">Contact Us</a>
+    </div>
+    <div style="margin-top:5px;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f990979f96b99b90959591988b94969780d79a9694">[email&#160;protected]</a> | 123 MedTech Lane, Innovation City</div>
+  </footer>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>

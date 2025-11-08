@@ -1,0 +1,48 @@
+{
+  "hospital_location": "Sample Regional Medical Center",
+  "hospital_address": "123 Medical Plaza, Joplin, MO 64804",
+  "affirmation": "To the best of our knowledge, this data is accurate as of 2024-01-15",
+  "price_list": [
+    {
+      "proc_desc": "ARTHROSCOPY KNEE SURGICAL",
+      "cpt_hcpcs": "29881",
+      "revenue_code": "0360",
+      "payers": {
+        "BCBS_Missouri": {
+          "rate": 2500.0,
+          "methodology": "case rate"
+        },
+        "Medicare_Traditional": {
+          "rate": 850.0,
+          "methodology": "fee schedule"
+        },
+        "UnitedHealthcare_PPO": {
+          "rate": 2650.0,
+          "methodology": "percent of charges",
+          "percent": 0.75
+        }
+      },
+      "standard_charge": 8000.0,
+      "min_charge": 800.0,
+      "max_charge": 8500.0
+    },
+    {
+      "proc_desc": "OFFICE VISIT EST PATIENT LEVEL 3",
+      "cpt_hcpcs": "99213",
+      "revenue_code": "0510",
+      "payers": {
+        "BCBS_Missouri": {
+          "rate": 150.0,
+          "methodology": "fee schedule"
+        },
+        "Medicare_Traditional": {
+          "rate": 93.0,
+          "methodology": "fee schedule"
+        }
+      },
+      "standard_charge": 250.0,
+      "min_charge": 90.0,
+      "max_charge": 280.0
+    }
+  ]
+}
