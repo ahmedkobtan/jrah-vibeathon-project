@@ -10,6 +10,7 @@ from typing import List, Dict
 
 from database.connection import init_database, get_db_manager
 from agents.adaptive_parser import AdaptiveParsingAgent
+from agents.openrouter_llm import OpenRouterLLMClient
 from agents.mock_llm import MockLLMClient
 from loaders.database_loader import DatabaseLoader
 from validation.data_validator import DataValidator
@@ -91,8 +92,14 @@ def main():
     logger.info("\n[STEP 3] Parsing hospital transparency file...")
     sample_file = Path(__file__).parent / 'data' / 'seeds' / 'sample_hospital_file.csv'
     
-    # Initialize parser with mock LLM
-    llm_client = MockLLMClient()
+    # Initialize parser with OpenRouter LLM (with mock as fallback)
+    try:
+        llm_client = OpenRouterLLMClient()
+        logger.info("  Using OpenRouter LLM for parsing")
+    except Exception as e:
+        logger.warning(f"  OpenRouter unavailable ({e}), falling back to mock LLM")
+        llm_client = MockLLMClient()
+    
     parser = AdaptiveParsingAgent(llm_client=llm_client)
     
     parsed_records = parser.parse_hospital_file(str(sample_file))

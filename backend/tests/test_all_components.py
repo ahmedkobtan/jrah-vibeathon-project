@@ -12,6 +12,7 @@ from pathlib import Path
 from database.connection import DatabaseManager, init_database
 from database import Provider, Procedure, InsurancePlan, PriceTransparency
 from agents.adaptive_parser import AdaptiveParsingAgent
+from agents.openrouter_llm import OpenRouterLLMClient
 from agents.mock_llm import MockLLMClient
 from loaders.database_loader import DatabaseLoader
 from validation.data_validator import DataValidator
@@ -30,8 +31,20 @@ def test_db():
 
 @pytest.fixture
 def mock_llm():
-    """Create mock LLM client"""
-    return MockLLMClient()
+    """Create LLM client (real if available, mock as fallback)"""
+    try:
+        return OpenRouterLLMClient()
+    except Exception:
+        return MockLLMClient()
+
+
+@pytest.fixture
+def real_llm():
+    """Create real OpenRouter LLM client"""
+    try:
+        return OpenRouterLLMClient()
+    except Exception:
+        pytest.skip("OpenRouter API not available")
 
 
 @pytest.fixture
