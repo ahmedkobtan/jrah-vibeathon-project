@@ -1,0 +1,4 @@
+plan_id,payer_name,network_id,coverage_percent,deductible,aliases
+bcbs-mo-silver,Blue Cross Blue Shield,BCBS-MO,0.8,1500,"blue cross|blue cross blue shield missouri|blue cross mo"
+bcbs-ar-gold,Blue Cross Blue Shield,BCBS-AR,0.85,1200,"blue cross arkansas|arkansas blue cross"
+medicare-part-b,Medicare,MEDICARE,0.8,0,"medicare"

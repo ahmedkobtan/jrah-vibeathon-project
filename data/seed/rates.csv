@@ -1,0 +1,5 @@
+provider_id,cpt_code,payer_name,negotiated_rate,source,confidence,last_updated
+prov-1,73721,Blue Cross,350,hospital_mrf,0.92,2024-09-01
+prov-1,73723,Blue Cross,525,hospital_mrf,0.90,2024-09-01
+prov-2,73721,Blue Cross,370,openmedprices,0.65,2024-08-15
+prov-3,73721,Blue Cross,410,medicare_baseline,0.50,2024-08-10

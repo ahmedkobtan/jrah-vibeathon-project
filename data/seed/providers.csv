@@ -1,0 +1,4 @@
+provider_id,name,state,lat,lon,address,zip
+prov-1,Mercy Hospital - Joplin,MO,37.0842,-94.5133,100 Mercy Way,64804
+prov-2,Freeman Imaging Center,MO,37.0842,-94.5133,123 Imaging Ln,64801
+prov-3,Mercy Hospital - Rogers,AR,36.332,-94.1185,2710 S Rife Medical Ln,72758
