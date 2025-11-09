@@ -1,8 +1,8 @@
 """
-Service layer exports.
+Service layer business logic.
 """
 
+from .npi_client import NpiClient
 from .pricing import PricingService
-from .npi_client import NpiClient, NpiProvider, NpiAddress
 
-__all__ = ["PricingService", "NpiClient", "NpiProvider", "NpiAddress"]
+__all__ = ["NpiClient", "PricingService"]
