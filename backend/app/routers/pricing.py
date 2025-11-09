@@ -31,6 +31,18 @@ def get_price_estimates(
     zip_code: Optional[str] = Query(
         None, description="Filter by provider ZIP code (exact match)"
     ),
+    provider_city: Optional[str] = Query(
+        None, description="Optional provider city filter / fallback"
+    ),
+    provider_state: Optional[str] = Query(
+        None, description="Provider state used for fallback lookups"
+    ),
+    provider_limit: int = Query(
+        20,
+        ge=1,
+        le=50,
+        description="Maximum number of providers to pull when falling back to NPI data",
+    ),
     limit: int = Query(
         20,
         ge=1,
@@ -49,5 +61,8 @@ def get_price_estimates(
         state=state,
         zip_code=zip_code,
         limit=limit,
+        provider_city=provider_city,
+        provider_state=provider_state,
+        provider_limit=provider_limit,
     )
 

@@ -88,6 +88,9 @@ export interface PriceEstimateParams {
   state?: string;
   zipCode?: string;
   limit?: number;
+  providerCity?: string;
+  providerState?: string;
+  providerLimit?: number;
 }
 
 export async function fetchPriceEstimates(
@@ -107,6 +110,18 @@ export async function fetchPriceEstimates(
 
   if (params.zipCode) {
     url.searchParams.set("zip_code", params.zipCode);
+  }
+
+  if (params.providerCity) {
+    url.searchParams.set("provider_city", params.providerCity);
+  }
+
+  if (params.providerState) {
+    url.searchParams.set("provider_state", params.providerState);
+  }
+
+  if (params.providerLimit) {
+    url.searchParams.set("provider_limit", String(params.providerLimit));
   }
 
   const response = await fetch(url);

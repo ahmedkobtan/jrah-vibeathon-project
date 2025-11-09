@@ -114,12 +114,16 @@ export default function App(): JSX.Element {
 
     try {
       setLoadingPricing(true);
+      const providerLimitValue = Number(providerLimit) || undefined;
       const response = await fetchPriceEstimates({
         cptCode: selectedCpt,
         payerName: payerName.trim() || undefined,
         state: stateFilter.trim() || undefined,
         zipCode: zipFilter.trim() || undefined,
         limit,
+        providerCity: providerCity.trim() || undefined,
+        providerState: providerState.trim().toUpperCase() || undefined,
+        providerLimit: providerLimitValue,
       });
       setPricing(response);
     } catch (err) {
@@ -365,6 +369,13 @@ export default function App(): JSX.Element {
               </span>
             </div>
           </div>
+
+          {pricing.summary.payer_matches === 0 && (
+            <div className="info-banner">
+              Negotiated rates were unavailable, so we’re showing estimated
+              market prices for nearby providers based on public benchmarks.
+            </div>
+          )}
 
           <div className="table-wrapper">
             <table>

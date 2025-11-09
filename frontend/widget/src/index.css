@@ -152,6 +152,15 @@ button.primary:not(:disabled):hover {
   border: 1px solid #e2e8f0;
 }
 
+.info-banner {
+  margin-top: 1rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  background: rgba(79, 70, 229, 0.08);
+  color: #312e81;
+  font-weight: 500;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

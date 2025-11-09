@@ -16,7 +16,7 @@ class PriceDetail(BaseModel):
     Detailed pricing information for a single provider/payer combination.
     """
 
-    id: int
+    id: Optional[int] = None
     payer_name: Optional[str] = None
     negotiated_rate: Optional[float] = None
     min_negotiated_rate: Optional[float] = None
