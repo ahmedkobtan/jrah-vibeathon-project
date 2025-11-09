@@ -29,6 +29,13 @@ class QueryUnderstandingAgent:
         """
         Main entry point: Search for procedures using natural language
         
+        NEW STRATEGY:
+        1. Run database AND DuckDuckGo in parallel
+        2. Prefer CPT codes that appear in BOTH
+        3. If database empty → use DuckDuckGo
+        4. If DuckDuckGo empty → use database
+        5. If BOTH empty → use Google search
+        
         Args:
             user_query: Natural language query (e.g., "knee MRI", "x-ray chest")
             limit: Max results to return
@@ -36,35 +43,64 @@ class QueryUnderstandingAgent:
         Returns:
             List of dicts with cpt_code, description, match_score
         """
-        # Minimum match score to be considered a good match
         MIN_MATCH_SCORE = 0.5
         
-        # Step 1: Database fuzzy search (fast, most common case)
+        # Step 1: Run database search first
         db_matches = self._database_search(user_query, limit)
-        
-        # Filter out low-quality matches
         good_db_matches = [m for m in db_matches if m["match_score"] >= MIN_MATCH_SCORE]
         
-        if good_db_matches and len(good_db_matches) >= 2:
-            # Good matches found, return them
-            return good_db_matches[:limit]
+        # Step 2: Only run DuckDuckGo if:
+        # - Database has results (to cross-validate)
+        # - Query is specific (more than 1 word)
+        should_use_ddg = (
+            DUCKDUCKGO_AVAILABLE and 
+            (good_db_matches or len(user_query.split()) > 1)
+        )
         
-        # Step 2: LLM-enhanced search for better understanding
-        llm_enhanced = self._llm_enhanced_search(user_query, limit)
+        ddg_matches = []
+        if should_use_ddg:
+            ddg_matches = self._duckduckgo_search(user_query, limit)
         
-        # Combine and deduplicate, keeping only good matches
-        combined = self._merge_results(good_db_matches, llm_enhanced, limit)
+        # Step 3: Determine strategy based on what we found
+        db_cpt_codes = {m["cpt_code"] for m in good_db_matches}
+        ddg_cpt_codes = {m["cpt_code"] for m in ddg_matches}
         
-        # Filter combined results
-        good_combined = [m for m in combined if m["match_score"] >= MIN_MATCH_SCORE]
-        
-        # Step 3: Only use web search if really no good matches found
-        if len(good_combined) == 0 and DUCKDUCKGO_AVAILABLE:
-            web_results = self._web_search_fallback(user_query, limit)
-            combined = self._merge_results(good_combined, web_results, limit)
+        # Case 1: Both have results → prefer CPT codes in BOTH
+        if db_cpt_codes and ddg_cpt_codes:
+            common_cpts = db_cpt_codes.intersection(ddg_cpt_codes)
+            
+            if common_cpts:
+                # Return procedures that appear in both sources (highest confidence)
+                results = []
+                for match in good_db_matches:
+                    if match["cpt_code"] in common_cpts:
+                        # Boost score for appearing in both sources
+                        match["match_score"] = min(1.0, match["match_score"] + 0.2)
+                        match["source"] = "database + duckduckgo"
+                        results.append(match)
+                
+                if results:
+                    results.sort(key=lambda x: x["match_score"], reverse=True)
+                    return results[:limit]
+            
+            # If no common codes, combine all results from both sources
+            combined = self._merge_results(good_db_matches, ddg_matches, limit)
+            combined.sort(key=lambda x: x["match_score"], reverse=True)
             return combined[:limit]
         
-        return good_combined[:limit]
+        # Case 2: Only database has results
+        elif db_cpt_codes and not ddg_cpt_codes:
+            return good_db_matches[:limit]
+        
+        # Case 3: Only DuckDuckGo has results
+        elif ddg_cpt_codes and not db_cpt_codes:
+            return ddg_matches[:limit]
+        
+        # Case 4: BOTH are empty → try Google search as final fallback
+        else:
+            print("Both database and DuckDuckGo returned no results, trying Google fallback...")
+            google_results = self._google_search(user_query, limit)
+            return google_results[:limit]
     
     def _database_search(self, query: str, limit: int) -> List[Dict]:
         """
@@ -427,7 +463,7 @@ Return ONLY a JSON array of objects with this format:
 Only include CPT codes that are truly relevant. Maximum 3 codes.
 """
             
-            response = self.llm.complete(prompt, temperature=0.2)
+            response = self.llm.complete(prompt, temperature=0)
             
             # Parse response
             response = response.strip()
