@@ -5,6 +5,7 @@ Pricing service containing business logic for cost estimates.
 from datetime import date, datetime
 from typing import Optional, Union
 import hashlib
+import os
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -23,6 +24,14 @@ from app.schemas import (
     QueryContext,
 )
 
+# Import the Pricing Estimation Agent
+try:
+    from agents.pricing_estimation_agent import PricingEstimationAgent
+    from agents.openrouter_llm import OpenRouterLLMClient
+    AGENT_AVAILABLE = True
+except ImportError:
+    AGENT_AVAILABLE = False
+
 
 class PricingService:
     """
@@ -35,11 +44,26 @@ class PricingService:
         npi_client: NpiClient | None = None,
         search_client: Union[DuckDuckGoSearchClient, GoogleSearchClient, None] = None,
         google_search_client: GoogleSearchClient | None = None,  # Legacy parameter
+        use_agent: bool = True,  # NEW: Enable agent-based estimation
     ):
         self.session = session
         self.npi_client = npi_client or NpiClient()
         # Support both new generic search_client and legacy google_search_client
         self.search_client = search_client or google_search_client
+        
+        # Initialize the Pricing Estimation Agent if available
+        self.agent = None
+        if use_agent and AGENT_AVAILABLE:
+            try:
+                api_key = os.getenv("OPENROUTER_API_KEY", "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")
+                llm_client = OpenRouterLLMClient(api_key=api_key)
+                self.agent = PricingEstimationAgent(
+                    llm_client=llm_client,
+                    search_client=self.search_client
+                )
+            except Exception as e:
+                print(f"Failed to initialize Pricing Estimation Agent: {e}")
+                self.agent = None
 
     def fetch_price_estimates(
         self,
@@ -354,13 +378,75 @@ class PricingService:
         provider_state: Optional[str],
     ) -> list[PriceEstimateItem]:
         """
-        Use web search (DuckDuckGo or Google) to find pricing information for a CPT code.
+        Use web search (DuckDuckGo or Google) and AI agent to find pricing information.
         
         This is the last-resort fallback when:
         - No database records exist
         - NPI fallback didn't produce results
         - Web search client is available (DuckDuckGo preferred, Google as alternative)
+        
+        NEW: Now uses intelligent Pricing Estimation Agent for better estimates.
         """
+        # Try the new agent-based approach first
+        if self.agent:
+            try:
+                estimate_data = self.agent.estimate_price(
+                    cpt_code=cpt_code,
+                    procedure_description=procedure_summary.description,
+                    state=provider_state,
+                    city=provider_city,
+                    payer_name=payer_name,
+                    use_llm_analysis=True  # Enable LLM for better analysis
+                )
+                
+                if estimate_data and estimate_data.get("negotiated_rate"):
+                    # Create a provider summary for the agent-based estimate
+                    location_str = f"{provider_city}, {provider_state}" if provider_city and provider_state else provider_state or "Unknown"
+                    
+                    provider_summary = ProviderSummary(
+                        id=None,
+                        npi=None,
+                        name=f"AI-Estimated Average ({location_str})",
+                        address="Web-sourced + AI analyzed estimate",
+                        city=provider_city or "",
+                        state=provider_state or "",
+                        zip="",
+                        phone=None,
+                        website=None,
+                    )
+                    
+                    # Build detailed data source description
+                    data_source = estimate_data.get("data_source", "AI Agent Estimate")
+                    if estimate_data.get("analysis"):
+                        data_source += f" | {estimate_data['analysis']}"
+                    
+                    price_detail = PriceDetail(
+                        id=None,
+                        payer_name=payer_name or "Market Average",
+                        negotiated_rate=estimate_data["negotiated_rate"],
+                        min_negotiated_rate=estimate_data.get("min_rate"),
+                        max_negotiated_rate=estimate_data.get("max_rate"),
+                        standard_charge=estimate_data.get("standard_charge"),
+                        cash_price=estimate_data.get("cash_price"),
+                        in_network=True,
+                        data_source=data_source,
+                        confidence_score=estimate_data.get("confidence", 0.5),
+                        last_updated=date.today(),
+                        created_at=datetime.utcnow(),
+                    )
+                    
+                    return [
+                        PriceEstimateItem(
+                            provider=provider_summary,
+                            procedure=procedure_summary,
+                            price=price_detail,
+                        )
+                    ]
+            except Exception as e:
+                print(f"Agent-based estimation failed: {e}")
+                # Fall through to legacy method
+        
+        # Fallback to old method if agent is not available
         if not self.search_client:
             return []
         
