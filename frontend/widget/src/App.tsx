@@ -393,6 +393,29 @@ export default function App(): JSX.Element {
 
       {pricing && pricing.results.length > 0 && (
         <section className="results">
+          {selectedProcedure && (
+            <div className="info-banner" style={{ 
+              backgroundColor: selectedProcedure.category === "Web Search Result" ? "#fff3cd" : "#d1ecf1",
+              padding: "1rem",
+              marginBottom: "1rem",
+              borderRadius: "4px",
+              border: selectedProcedure.category === "Web Search Result" ? "1px solid #ffc107" : "1px solid #bee5eb"
+            }}>
+              <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.1rem" }}>
+                📋 Showing Prices For: <strong>{selectedProcedure.cpt_code}</strong> - {selectedProcedure.description}
+              </h3>
+              {selectedProcedure.category === "Web Search Result" && (
+                <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "#856404" }}>
+                  ⚡ This procedure was found via web search since it's not in our local database
+                </p>
+              )}
+              {selectedProcedure.medicare_rate && (
+                <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem" }}>
+                  Medicare baseline: <strong>{formatCurrency(selectedProcedure.medicare_rate)}</strong>
+                </p>
+              )}
+            </div>
+          )}
           <div className="summary">
             <div className="summary-item">
               <span>Providers matched</span>

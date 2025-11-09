@@ -3,9 +3,16 @@ Query Understanding Agent - Real-time natural language to CPT code mapping
 """
 
 import json
-from typing import List, Dict, Tuple
+import re
+from typing import List, Dict, Tuple, Optional
 from sqlalchemy.orm import Session
 from database.schema import Procedure
+
+try:
+    from app.services.duckduckgo_search_client import DuckDuckGoSearchClient
+    DUCKDUCKGO_AVAILABLE = True
+except ImportError:
+    DUCKDUCKGO_AVAILABLE = False
 
 
 class QueryUnderstandingAgent:
@@ -41,6 +48,11 @@ class QueryUnderstandingAgent:
         
         # Combine and deduplicate
         combined = self._merge_results(db_matches, llm_enhanced, limit)
+        
+        # Step 3: If still no good results, try web search as fallback
+        if len(combined) < 2 and DUCKDUCKGO_AVAILABLE:
+            web_results = self._web_search_fallback(user_query, limit)
+            combined = self._merge_results(combined, web_results, limit)
         
         return combined[:limit]
     
@@ -130,10 +142,10 @@ If unsure, return fewer codes rather than guessing.
             
             codes = json.loads(response)
             
-            # Validate format
+            # Validate format - must be 5-digit numeric string
             valid_codes = []
             for code in codes:
-                if isinstance(code, str) and len(code) == 5:
+                if isinstance(code, str) and len(code) == 5 and code.isdigit():
                     valid_codes.append(code)
             
             return valid_codes
@@ -164,6 +176,158 @@ If unsure, return fewer codes rather than guessing.
             score += 0.2
         
         return min(1.0, score)
+    
+    def _web_search_fallback(self, query: str, limit: int) -> List[Dict]:
+        """
+        Use DuckDuckGo web search to find CPT codes when database is empty.
+        This is a fallback mechanism for procedures not in our database.
+        """
+        try:
+            # Initialize DuckDuckGo client
+            ddg_client = DuckDuckGoSearchClient()
+            
+            # Search for CPT code information
+            search_query = f"{query} CPT code medical procedure"
+            
+            # Use text search to find CPT code info
+            from duckduckgo_search import DDGS
+            
+            results = []
+            with DDGS() as ddgs:
+                search_results = ddgs.text(
+                    keywords=search_query,
+                    region='wt-wt',
+                    safesearch='moderate',
+                    max_results=10
+                )
+                
+                if search_results:
+                    search_results = list(search_results)
+                else:
+                    search_results = []
+            
+            # Extract CPT codes from search results
+            cpt_codes_found = set()
+            text_snippets = []
+            
+            for result in search_results:
+                title = result.get("title", "")
+                snippet = result.get("body", "")
+                text = f"{title} {snippet}"
+                text_snippets.append(text)
+                
+                # Extract 5-digit codes that might be CPT codes
+                potential_cpts = re.findall(r'\b(\d{5})\b', text)
+                for code in potential_cpts:
+                    cpt_codes_found.add(code)
+            
+            # Use LLM to validate and rank the found CPT codes
+            if cpt_codes_found:
+                cpt_list = list(cpt_codes_found)[:limit]
+                
+                try:
+                    # Try LLM validation
+                    validated_cpts = self._validate_cpts_with_llm(
+                        query, 
+                        cpt_list, 
+                        text_snippets[:5]
+                    )
+                except Exception as e:
+                    print(f"LLM validation failed, using basic descriptions: {e}")
+                    # Fallback: create basic descriptions from query
+                    validated_cpts = [(code, f"{query.title()} (CPT {code})") for code in cpt_list[:limit]]
+                
+                # Create results for validated CPT codes
+                for cpt_code, description in validated_cpts[:limit]:
+                    # Check if code exists in database
+                    proc = self.db.query(Procedure).filter(
+                        Procedure.cpt_code == cpt_code
+                    ).first()
+                    
+                    if proc:
+                        results.append({
+                            "cpt_code": proc.cpt_code,
+                            "description": proc.description,
+                            "category": proc.category,
+                            "medicare_rate": proc.medicare_rate,
+                            "match_score": 0.6  # Web search result
+                        })
+                    else:
+                        # CPT code not in our database, use LLM-provided description
+                        results.append({
+                            "cpt_code": cpt_code,
+                            "description": description,
+                            "category": "Web Search Result",
+                            "medicare_rate": None,
+                            "match_score": 0.5  # Lower score for external data
+                        })
+            
+            return results
+            
+        except Exception as e:
+            print(f"Web search fallback error: {e}")
+            return []
+    
+    def _validate_cpts_with_llm(
+        self, 
+        query: str, 
+        cpt_codes: List[str], 
+        context_snippets: List[str]
+    ) -> List[Tuple[str, str]]:
+        """
+        Use LLM to validate CPT codes found on the web and provide descriptions.
+        
+        Returns:
+            List of tuples (cpt_code, description)
+        """
+        try:
+            context = "\n".join(context_snippets[:3])
+            
+            prompt = f"""You are a medical coding expert. A user searched for: "{query}"
+
+We found these potential CPT codes from web search: {cpt_codes}
+
+Context from search results:
+{context}
+
+Task: Identify which CPT codes are most relevant for "{query}" and provide a brief description for each.
+
+Return ONLY a JSON array of objects with this format:
+[
+  {{"cpt_code": "12345", "description": "Brief procedure description"}},
+  {{"cpt_code": "67890", "description": "Another procedure description"}}
+]
+
+Only include CPT codes that are truly relevant. Maximum 3 codes.
+"""
+            
+            response = self.llm.complete(prompt, temperature=0.2)
+            
+            # Parse response
+            response = response.strip()
+            if response.startswith("```"):
+                response = response.split("```")[1]
+                if response.startswith("json"):
+                    response = response[4:]
+                response = response.strip()
+            
+            parsed = json.loads(response)
+            
+            # Extract (code, description) tuples
+            result = []
+            for item in parsed:
+                if isinstance(item, dict) and "cpt_code" in item and "description" in item:
+                    code = str(item["cpt_code"])
+                    desc = str(item["description"])
+                    if len(code) == 5 and code.isdigit():
+                        result.append((code, desc))
+            
+            return result
+            
+        except Exception as e:
+            print(f"LLM validation error: {e}")
+            # Return first few codes with generic descriptions as fallback
+            return [(code, f"Procedure related to {query}") for code in cpt_codes[:3]]
     
     def _merge_results(self, db_results: List[Dict], llm_results: List[Dict], limit: int) -> List[Dict]:
         """Combine and deduplicate results"""

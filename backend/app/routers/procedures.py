@@ -87,19 +87,31 @@ def smart_search_procedures(
         # Convert to ProcedureSummary format
         procedures = []
         for result in results:
+            # First try to get from database
             proc = db.query(Procedure).filter(
                 Procedure.cpt_code == result["cpt_code"]
             ).first()
+            
             if proc:
+                # Procedure exists in database
                 procedures.append(ProcedureSummary.model_validate(proc))
+            else:
+                # Procedure from web search - create summary directly from result
+                procedures.append(ProcedureSummary(
+                    cpt_code=result["cpt_code"],
+                    description=result["description"],
+                    category=result.get("category", "Web Search Result"),
+                    medicare_rate=result.get("medicare_rate")
+                ))
         
         return procedures
         
     except Exception as e:
         print(f"Smart search error: {e}")
-        # Fallback to regular search
-        from fastapi import HTTPException
-        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Fallback to regular search on error
+        return list_procedures(q=q, limit=limit, db=db)
 
 
 @router.get("/{cpt_code}", response_model=ProcedureSummary)

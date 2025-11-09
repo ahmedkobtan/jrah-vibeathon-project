@@ -142,7 +142,7 @@ def verify_database_consistency():
         logger.info(f"  Current providers: {provider_before}")
         
         # Verify parser can use the loader
-        api_key = "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"
+        api_key = "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"
         llm = OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
         parser = AdaptiveParsingAgent(llm_client=llm)
         
