@@ -387,12 +387,12 @@ Return ONLY the JSON, no explanations.
                                 base_record['cpt_code'] = code_info.get('code')
                                 break
                     
-                    # Extract NDC codes as fallback
-                    if not base_record.get('cpt_code') and 'code_information' in row:
-                        for code_info in row['code_information']:
-                            if code_info.get('type') == 'NDC':
-                                base_record['cpt_code'] = code_info.get('code')
-                                break
+                    # # Extract NDC codes as fallback
+                    # if not base_record.get('cpt_code') and 'code_information' in row:
+                    #     for code_info in row['code_information']:
+                    #         if code_info.get('type') == 'NDC':
+                    #             base_record['cpt_code'] = code_info.get('code')
+                    #             break
                     
                     # Create a record for each standard_charge entry
                     for charge in row['standard_charges']:
