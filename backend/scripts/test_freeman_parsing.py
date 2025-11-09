@@ -33,7 +33,7 @@ def main():
     logger.info("=" * 80)
     
     # Initialize OpenRouter LLM with API key
-    api_key = "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"
+    api_key = "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"
     llm = OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
     logger.info(f"✓ OpenRouter LLM initialized (mock_mode: {llm.mock_mode})")
     
