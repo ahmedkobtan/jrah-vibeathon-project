@@ -82,6 +82,18 @@ export async function fetchProcedures(
   return handleResponse<ProcedureSummary[]>(response);
 }
 
+export async function smartSearchProcedures(
+  query: string,
+  limit = 10,
+): Promise<ProcedureSummary[]> {
+  const url = new URL(`${API_BASE_URL}/procedures/smart-search`);
+  url.searchParams.set("q", query);
+  url.searchParams.set("limit", String(limit));
+
+  const response = await fetch(url);
+  return handleResponse<ProcedureSummary[]>(response);
+}
+
 export interface PriceEstimateParams {
   cptCode: string;
   payerName?: string;
@@ -141,4 +153,3 @@ export async function lookupProviders(
   const response = await fetch(url);
   return handleResponse<ProviderSummary[]>(response);
 }
-
