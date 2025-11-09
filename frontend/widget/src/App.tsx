@@ -8,6 +8,7 @@ import {
   smartSearchProcedures,
   lookupProviders,
 } from "./api";
+import penguinLogo from "./penguin_doctor_logo.png";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -234,12 +235,17 @@ export default function App(): JSX.Element {
 
   return (
     <div className="widget">
-      <h1>Cost Transparency Explorer</h1>
-      <p>
-        Compare negotiated rates across providers in seconds. Pick a CPT-coded
-        procedure, optionally filter by payer or geography, and explore the
-        latest pricing data from the Vibeathon backend.
-      </p>
+      <div className="widget-header">
+        <img src={penguinLogo} alt="Penguin Doctor" className="logo" />
+        <div>
+          <h1>Cost Transparency Explorer</h1>
+          <p>
+            Compare negotiated rates across providers in seconds. Pick a CPT-coded
+            procedure, optionally filter by payer or geography, and explore the
+            latest pricing data from the Vibeathon backend.
+          </p>
+        </div>
+      </div>
 
       <form className="form-grid" onSubmit={handleProcedureSearch}>
         <div className="form-group">
