@@ -1,0 +1,51 @@
+hospital_name,cpt_code,procedure_description,payer_name,negotiated_rate,confidence_score
+Freeman Health System,00065051801,AKWA TEARS,Self-Pay,36.68,1.00
+Freeman Health System,00069303220,ADRIAMYCIN 50 MG/25 ML,Self-Pay,100.46,1.00
+Freeman Health System,00185084201,ADDERALL,Self-Pay,0.83,1.00
+Freeman Health System,00338070434,"1/2 NORMAL SALINE 1,000 ML + KCL 20 MEQ",Self-Pay,56.66,1.00
+Freeman Health System,00406895201,ADDERALL XR,Self-Pay,2.50,1.00
+Freeman Health System,00409773036,1/2 NORMAL SALINE 50 ML,Self-Pay,10.96,1.00
+Freeman Health System,00409798503,1/2 NORMAL SALINE 500 ML,Self-Pay,34.28,1.00
+Freeman Health System,00409798509,"1/2 NORMAL SALINE 1,000 ML",Self-Pay,34.21,1.00
+Freeman Health System,00527551137,ADDERALL XR,Self-Pay,2.08,1.00
+Freeman Health System,00574052176,ACTIDOSE-AQUA 50 GM/240 ML,Self-Pay,82.50,1.00
+Freeman Health System,00904676130,AFRIN,Self-Pay,8.69,1.00
+Freeman Health System,00904742730,AFRIN,Self-Pay,9.69,1.00
+Freeman Health System,00904791461,ADVIL,Self-Pay,0.55,1.00
+Freeman Health System,14789010210,AGGRASTAT,Self-Pay,1334.44,1.00
+Freeman Health System,24208073006,ALCAINE 0.5% 15 ML,Self-Pay,93.30,1.00
+Freeman Health System,25021081230,ACETADOTE 200 MG/ML,Self-Pay,314.46,1.00
+Freeman Health System,31722000860,ACCOLATE,Self-Pay,7.71,1.00
+Freeman Health System,31722093502,ALBENZA,Self-Pay,35.11,1.00
+Freeman Health System,33342005407,ACTOS,Self-Pay,0.28,1.00
+Freeman Health System,33342005507,ACTOS,Self-Pay,0.56,1.00
+Freeman Health System,42023010301,ADRENALIN TOPICAL,Self-Pay,1075.40,1.00
+Freeman Health System,43598033960,AGGRENOX 25-200 MG,Self-Pay,2.75,1.00
+Freeman Health System,43598073330,ABILIFY DISCMELT,Self-Pay,80.51,1.00
+Freeman Health System,43598073430,ABILIFY DISCMELT,Self-Pay,79.12,1.00
+Freeman Health System,44206025105,ALBUMIN 25%,Self-Pay,151.05,1.00
+Freeman Health System,44206025110,ALBUMIN 25%,Self-Pay,393.25,1.00
+Freeman Health System,44206031025,ALBUMIN 5%,Self-Pay,219.24,1.00
+Freeman Health System,45802041059,AFRIN,Self-Pay,5.33,1.00
+Freeman Health System,46122016510,AFRIN,Self-Pay,4.68,1.00
+Freeman Health System,50242004413,ACTIVASE 50 MG/50 ML,Self-Pay,20707.92,1.00
+Freeman Health System,50242008527,ACTIVASE 100 MG/100 ML,Self-Pay,39709.21,1.00
+Freeman Health System,50242013501,ACTEMRA 80 MG/4 ML,Self-Pay,2601.82,1.00
+Freeman Health System,50242013601,ACTEMRA 200 MG/10 ML,Self-Pay,6542.01,1.00
+Freeman Health System,50242013701,ACTEMRA 400 MG/20 ML,Self-Pay,11865.07,1.00
+Freeman Health System,50742026101,ADALAT CC,Self-Pay,0.89,1.00
+Freeman Health System,50742026201,ADALAT CC,Self-Pay,1.46,1.00
+Freeman Health System,51552005106,ACETIC ACID 3%,Self-Pay,73.22,1.00
+Freeman Health System,55150019301,ADENOCARD,Self-Pay,186.35,1.00
+Freeman Health System,55150025930,ACETADOTE 200 MG/ML,Self-Pay,228.82,1.00
+Freeman Health System,55150043001,AGGRASTAT,Self-Pay,2537.16,1.00
+Freeman Health System,60687046501,ALDACTONE,Self-Pay,0.56,1.00
+Freeman Health System,60687047601,ALDACTONE,Self-Pay,1.13,1.00
+Freeman Health System,61269098135,ABREVA 10% CREAM,Self-Pay,53.01,1.00
+Freeman Health System,61314012605,ACULAR,Self-Pay,21.59,1.00
+Freeman Health System,62332009730,ABILIFY,Self-Pay,0.47,1.00
+Freeman Health System,62332009831,ABILIFY,Self-Pay,0.38,1.00
+Freeman Health System,62332010230,ABILIFY,Self-Pay,1.04,1.00
+Freeman Health System,62332010330,ABILIFY DISCMELT,Self-Pay,21.89,1.00
+Freeman Health System,70710148301,ACTIGALL,Self-Pay,2.22,1.00
+Freeman Health System,71399012204,A&D OINTMENT,Self-Pay,1.40,1.00

@@ -152,6 +152,10 @@ class AdaptiveParsingAgent:
             if isinstance(data, list):
                 return data[:n_rows]
             elif isinstance(data, dict):
+                # Check for CMS MRF format with standard_charge_information
+                if 'standard_charge_information' in data:
+                    return data['standard_charge_information'][:n_rows]
+                
                 # Find the key containing the data array
                 for key, value in data.items():
                     if isinstance(value, list) and len(value) > 0:
@@ -321,12 +325,16 @@ Return ONLY the JSON, no explanations.
             if isinstance(data, list):
                 records = data
             elif isinstance(data, dict):
-                # Find the key containing the data array
-                records = []
-                for value in data.values():
-                    if isinstance(value, list) and len(value) > 0:
-                        records = value
-                        break
+                # Check for CMS MRF format with standard_charge_information
+                if 'standard_charge_information' in data:
+                    records = data['standard_charge_information']
+                else:
+                    # Find the key containing the data array
+                    records = []
+                    for value in data.values():
+                        if isinstance(value, list) and len(value) > 0:
+                            records = value
+                            break
             else:
                 records = []
             
@@ -364,27 +372,58 @@ Return ONLY the JSON, no explanations.
         
         for row in chunk:
             try:
-                record = {}
-                
-                # Map fields using schema
-                for std_field, file_field in schema_mapping.items():
-                    if file_field and file_field in row:
-                        record[std_field] = row[file_field]
-                    else:
-                        record[std_field] = None
-                
-                # Handle special cases
-                if not record.get('cpt_code') and record.get('procedure_description'):
-                    record['cpt_code'] = self.extract_cpt_from_text(
-                        record['procedure_description']
-                    )
-                
-                if record.get('payer_name'):
-                    record['payer_name'] = self.normalize_payer_name(
-                        record['payer_name']
-                    )
-                
-                records.append(record)
+                # Check if this is CMS MRF format with nested standard_charges
+                if 'standard_charges' in row and isinstance(row['standard_charges'], list):
+                    # Flatten nested structure - create one record per standard_charge entry
+                    base_record = {
+                        'procedure_description': row.get('description'),
+                        'provider_name': None  # Will be filled from file metadata
+                    }
+                    
+                    # Extract CPT/HCPCS codes
+                    if 'code_information' in row:
+                        for code_info in row['code_information']:
+                            if code_info.get('type') in ['CPT', 'HCPCS']:
+                                base_record['cpt_code'] = code_info.get('code')
+                                break
+                    
+                    # Extract NDC codes as fallback
+                    if not base_record.get('cpt_code') and 'code_information' in row:
+                        for code_info in row['code_information']:
+                            if code_info.get('type') == 'NDC':
+                                base_record['cpt_code'] = code_info.get('code')
+                                break
+                    
+                    # Create a record for each standard_charge entry
+                    for charge in row['standard_charges']:
+                        record = base_record.copy()
+                        record['standard_charge'] = charge.get('gross_charge')
+                        record['negotiated_rate'] = charge.get('discounted_cash') or charge.get('gross_charge')
+                        record['payer_name'] = charge.get('payer_name', 'Self-Pay')
+                        records.append(record)
+                else:
+                    # Standard flat structure
+                    record = {}
+                    
+                    # Map fields using schema
+                    for std_field, file_field in schema_mapping.items():
+                        if file_field and file_field in row:
+                            record[std_field] = row[file_field]
+                        else:
+                            record[std_field] = None
+                    
+                    # Handle special cases
+                    if not record.get('cpt_code') and record.get('procedure_description'):
+                        record['cpt_code'] = self.extract_cpt_from_text(
+                            record['procedure_description']
+                        )
+                    
+                    if record.get('payer_name'):
+                        record['payer_name'] = self.normalize_payer_name(
+                            record['payer_name']
+                        )
+                    
+                    records.append(record)
                 
             except Exception as e:
                 logger.error(f"Failed to extract record: {e}")

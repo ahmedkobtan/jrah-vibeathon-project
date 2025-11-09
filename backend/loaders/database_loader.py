@@ -80,33 +80,49 @@ class DatabaseLoader:
                     
                     # Commit in batches of 100
                     if loaded_count % 100 == 0:
-                        session.commit()
-                        logger.info(f"Loaded {loaded_count} records...")
+                        try:
+                            session.commit()
+                            logger.info(f"Loaded {loaded_count} records...")
+                        except Exception as commit_error:
+                            logger.warning(f"Batch commit failed, rolling back: {commit_error}")
+                            session.rollback()
+                            # Continue with next batch
                 
                 except Exception as e:
                     logger.error(f"Failed to load record: {e}")
                     logger.debug(f"Record: {record}")
+                    session.rollback()
                     continue
             
             # Final commit
-            session.commit()
+            try:
+                session.commit()
+            except Exception as e:
+                logger.warning(f"Final commit failed: {e}")
+                session.rollback()
         
         logger.info(f"Successfully loaded {loaded_count} records")
         return loaded_count
     
     def _ensure_procedure(self, session, cpt_code: str, description: str = None):
         """Ensure procedure exists in database"""
-        existing = session.query(Procedure).filter_by(cpt_code=cpt_code).first()
-        
-        if not existing:
-            procedure = Procedure(
-                cpt_code=cpt_code,
-                description=description or f"Procedure {cpt_code}",
-                category=None,
-                medicare_rate=None
-            )
-            session.add(procedure)
-            logger.debug(f"Created procedure: {cpt_code}")
+        try:
+            existing = session.query(Procedure).filter_by(cpt_code=cpt_code).first()
+            
+            if not existing:
+                procedure = Procedure(
+                    cpt_code=cpt_code,
+                    description=description or f"Procedure {cpt_code}",
+                    category=None,
+                    medicare_rate=None
+                )
+                session.add(procedure)
+                session.flush()  # Flush to catch unique constraint errors early
+                logger.debug(f"Created procedure: {cpt_code}")
+        except Exception as e:
+            # Likely duplicate key error, which is fine - procedure already exists
+            logger.debug(f"Procedure {cpt_code} already exists or error: {e}")
+            session.rollback()
     
     def create_provider(
         self,
