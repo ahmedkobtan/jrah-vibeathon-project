@@ -13,7 +13,6 @@ from database.connection import DatabaseManager, init_database
 from database import Provider, Procedure, InsurancePlan, PriceTransparency
 from agents.adaptive_parser import AdaptiveParsingAgent
 from agents.openrouter_llm import OpenRouterLLMClient
-from agents.mock_llm import MockLLMClient
 from loaders.database_loader import DatabaseLoader
 from validation.data_validator import DataValidator
 
@@ -31,20 +30,9 @@ def test_db():
 
 @pytest.fixture
 def mock_llm():
-    """Create LLM client (real if available, mock as fallback)"""
-    try:
-        return OpenRouterLLMClient()
-    except Exception:
-        return MockLLMClient()
-
-
-@pytest.fixture
-def real_llm():
-    """Create real OpenRouter LLM client"""
-    try:
-        return OpenRouterLLMClient()
-    except Exception:
-        pytest.skip("OpenRouter API not available")
+    """Create OpenRouter LLM client with API key"""
+    api_key = "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"
+    return OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
 
 
 @pytest.fixture
@@ -500,43 +488,6 @@ class TestIntegration:
             os.unlink(temp_path)
 
 
-# Mock LLM Tests
-
-class TestMockLLM:
-    """Test mock LLM client"""
-    
-    def test_mock_llm_initialization(self):
-        """Test mock LLM initializes"""
-        llm = MockLLMClient()
-        assert llm.call_count == 0
-    
-    def test_mock_llm_schema_inference(self):
-        """Test mock LLM schema inference"""
-        llm = MockLLMClient()
-        prompt = "Analyze this hospital price transparency file and map the fields"
-        response = llm.complete(prompt)
-        
-        assert llm.call_count == 1
-        assert isinstance(response, str)
-        # Should return JSON
-        parsed = json.loads(response)
-        assert 'provider_name' in parsed
-    
-    def test_mock_llm_cpt_extraction(self):
-        """Test mock LLM CPT extraction"""
-        llm = MockLLMClient()
-        prompt = "Extract the CPT code from: MRI scan 70553"
-        response = llm.complete(prompt)
-        
-        assert '70553' in response
-    
-    def test_mock_llm_payer_normalization(self):
-        """Test mock LLM payer normalization"""
-        llm = MockLLMClient()
-        prompt = "Standardize this insurance payer name: BCBS Missouri"
-        response = llm.complete(prompt)
-        
-        assert 'Blue Cross' in response
 
 
 if __name__ == '__main__':

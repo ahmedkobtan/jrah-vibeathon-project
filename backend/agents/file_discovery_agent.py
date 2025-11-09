@@ -18,18 +18,32 @@ class FileDiscoveryAgent:
     LLM-powered agent to discover hospital price transparency files
     """
     
-    def __init__(self, llm_client=None):
+    def __init__(self, llm_client=None, local_directories: List[str] = None):
         """
         Initialize file discovery agent
         
         Args:
             llm_client: LLM client for intelligent search
+            local_directories: List of local directories to search for MRF files
         """
         self.llm = llm_client
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Healthcare Price Transparency Research Bot)'
         })
+        
+        # Set up local directories to search
+        if local_directories is None:
+            # Default: check ../real_mrfs and current directory
+            import os
+            from pathlib import Path
+            base_dir = Path(__file__).parent.parent.parent
+            local_directories = [
+                str(base_dir / 'real_mrfs'),
+                str(base_dir / 'downloaded_mrfs'),
+                str(Path.cwd() / 'real_mrfs'),
+            ]
+        self.local_directories = local_directories
     
     def discover_hospital_files(self, hospital_name: str, hospital_website: str = None) -> List[Dict]:
         """
@@ -275,6 +289,57 @@ class FileDiscoveryAgent:
             return results
         
         return []
+    
+    def discover_local_files(self, hospital_name: str = None) -> List[Dict]:
+        """
+        Discover price transparency files in local directories
+        
+        Args:
+            hospital_name: Optional filter by hospital name
+            
+        Returns:
+            List of discovered local file paths with metadata
+        """
+        from pathlib import Path
+        
+        discovered_files = []
+        
+        logger.info(f"Searching for local MRF files in: {self.local_directories}")
+        
+        for directory in self.local_directories:
+            dir_path = Path(directory)
+            if not dir_path.exists():
+                continue
+            
+            # Search for JSON and CSV files
+            for pattern in ['*.json', '*.csv']:
+                for file_path in dir_path.glob(pattern):
+                    # Check if file matches hospital name filter
+                    if hospital_name:
+                        if hospital_name.lower() not in file_path.name.lower():
+                            continue
+                    
+                    # Extract hospital name from filename (e.g., "freeman" from filename)
+                    file_name = file_path.stem.lower()
+                    detected_hospital = None
+                    if 'freeman' in file_name:
+                        detected_hospital = 'Freeman Health System'
+                    elif 'mercy' in file_name:
+                        detected_hospital = 'Mercy Hospital'
+                    
+                    discovered_files.append({
+                        'path': str(file_path),
+                        'filename': file_path.name,
+                        'hospital': detected_hospital or 'Unknown',
+                        'size_mb': file_path.stat().st_size / (1024 * 1024),
+                        'source': 'local_directory',
+                        'confidence': 1.0  # High confidence for local files
+                    })
+                    
+                    logger.info(f"✓ Found local file: {file_path.name} ({discovered_files[-1]['size_mb']:.2f} MB)")
+        
+        logger.info(f"Discovered {len(discovered_files)} local files")
+        return discovered_files
     
     def download_file(self, url: str, output_path: str, timeout: int = 60) -> bool:
         """
