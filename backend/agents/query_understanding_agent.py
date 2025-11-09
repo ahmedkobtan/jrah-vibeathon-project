@@ -179,8 +179,22 @@ If unsure, return fewer codes rather than guessing.
     
     def _web_search_fallback(self, query: str, limit: int) -> List[Dict]:
         """
-        Use DuckDuckGo web search to find CPT codes when database is empty.
-        This is a fallback mechanism for procedures not in our database.
+        Use web search to find CPT codes when database is empty.
+        Tries DuckDuckGo first, then Google search as fallback.
+        """
+        # Try DuckDuckGo first
+        results = self._duckduckgo_search(query, limit)
+        
+        # If DuckDuckGo returns nothing, try Google search
+        if not results:
+            print("DuckDuckGo returned no results, trying Google search fallback...")
+            results = self._google_search(query, limit)
+        
+        return results
+    
+    def _duckduckgo_search(self, query: str, limit: int) -> List[Dict]:
+        """
+        Use DuckDuckGo web search to find CPT codes.
         """
         try:
             # Initialize DuckDuckGo client
@@ -265,7 +279,106 @@ If unsure, return fewer codes rather than guessing.
             return results
             
         except Exception as e:
-            print(f"Web search fallback error: {e}")
+            print(f"DuckDuckGo search error: {e}")
+            return []
+    
+    def _google_search(self, query: str, limit: int) -> List[Dict]:
+        """
+        Use Google search to find CPT codes (fallback when DuckDuckGo fails).
+        """
+        try:
+            from googlesearch import search
+            import time
+            
+            search_query = f"{query} CPT code medical procedure"
+            
+            # Collect search results
+            urls_and_snippets = []
+            for url in search(search_query, num_results=10, lang='en'):
+                urls_and_snippets.append(url)
+                time.sleep(0.1)  # Be polite to avoid blocks
+            
+            # Extract CPT codes from URLs and perform targeted searches
+            cpt_codes_found = set()
+            text_snippets = []
+            
+            # Search each result URL text for CPT codes
+            for url in urls_and_snippets[:10]:
+                text_snippets.append(url)
+                # Extract 5-digit codes from URLs
+                potential_cpts = re.findall(r'\b(\d{5})\b', url)
+                for code in potential_cpts:
+                    cpt_codes_found.add(code)
+            
+            # If no codes found in URLs, do additional web searches
+            if not cpt_codes_found:
+                # Try more specific searches
+                specific_queries = [
+                    f"{query} procedure code",
+                    f"CPT code for {query}",
+                ]
+                
+                for specific_query in specific_queries:
+                    try:
+                        for url in search(specific_query, num_results=5, lang='en'):
+                            # Extract codes from URL
+                            codes = re.findall(r'\b(\d{5})\b', url)
+                            cpt_codes_found.update(codes)
+                            time.sleep(0.1)
+                        
+                        if cpt_codes_found:
+                            break
+                    except:
+                        continue
+            
+            results = []
+            
+            # Validate and create results
+            if cpt_codes_found:
+                cpt_list = list(cpt_codes_found)[:limit]
+                
+                try:
+                    # Try LLM validation
+                    validated_cpts = self._validate_cpts_with_llm(
+                        query,
+                        cpt_list,
+                        text_snippets[:5]
+                    )
+                except Exception as e:
+                    print(f"LLM validation failed, using basic descriptions: {e}")
+                    # Fallback: create basic descriptions from query
+                    validated_cpts = [(code, f"{query.title()} (CPT {code})") for code in cpt_list[:limit]]
+                
+                # Create results for validated CPT codes
+                for cpt_code, description in validated_cpts[:limit]:
+                    # Check if code exists in database
+                    proc = self.db.query(Procedure).filter(
+                        Procedure.cpt_code == cpt_code
+                    ).first()
+                    
+                    if proc:
+                        results.append({
+                            "cpt_code": proc.cpt_code,
+                            "description": proc.description,
+                            "category": proc.category,
+                            "medicare_rate": proc.medicare_rate,
+                            "match_score": 0.6  # Google search result
+                        })
+                    else:
+                        # CPT code not in our database
+                        results.append({
+                            "cpt_code": cpt_code,
+                            "description": description,
+                            "category": "Web Search Result (Google)",
+                            "medicare_rate": None,
+                            "match_score": 0.5  # Lower score for external data
+                        })
+            
+            print(f"Google search found {len(results)} CPT code results")
+            return results
+            
+        except Exception as e:
+            print(f"Google search error: {e}")
             return []
     
     def _validate_cpts_with_llm(

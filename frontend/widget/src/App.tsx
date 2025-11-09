@@ -126,6 +126,10 @@ export default function App(): JSX.Element {
         setProcedures(allProcedures);
         if (allProcedures.length > 0) {
           setSelectedCpt(allProcedures[0].cpt_code);
+        } else {
+          // No procedures found - clear selection and show error
+          setSelectedCpt("");
+          setError(`No procedures found for "${procedureQuery}". Try a different search term like "MRI", "X-ray", or "colonoscopy".`);
         }
       } else {
         // No search query - load all procedures with demos at top
@@ -283,6 +287,7 @@ export default function App(): JSX.Element {
             placeholder="City"
             value={providerCity}
             onChange={(event) => setProviderCity(event.target.value)}
+            disabled={!selectedCpt}
           />
         </div>
         <div className="form-group">
@@ -296,6 +301,7 @@ export default function App(): JSX.Element {
             onChange={(event) =>
               setProviderState(event.target.value.toUpperCase())
             }
+            disabled={!selectedCpt}
           />
         </div>
         <div className="form-group">
@@ -307,13 +313,15 @@ export default function App(): JSX.Element {
             max={50}
             value={providerLimit}
             onChange={(event) => setProviderLimit(event.target.value)}
+            disabled={!selectedCpt}
           />
         </div>
         <div className="form-actions">
           <button
             type="submit"
             className="primary"
-            disabled={loadingProviderLookup}
+            disabled={loadingProviderLookup || !selectedCpt}
+            title={!selectedCpt ? "Please search and select a procedure first" : ""}
           >
             {loadingProviderLookup ? "Looking up…" : "Lookup Providers"}
           </button>
@@ -329,6 +337,7 @@ export default function App(): JSX.Element {
             placeholder="Blue Cross, Medicare, United…"
             value={payerName}
             onChange={(event) => setPayerName(event.target.value)}
+            disabled={!selectedCpt}
           />
         </div>
         <div className="form-group">
@@ -340,6 +349,7 @@ export default function App(): JSX.Element {
             maxLength={2}
             value={stateFilter}
             onChange={(event) => setStateFilter(event.target.value)}
+            disabled={!selectedCpt}
           />
         </div>
         <div className="form-group">
@@ -350,6 +360,7 @@ export default function App(): JSX.Element {
             placeholder="64801"
             value={zipFilter}
             onChange={(event) => setZipFilter(event.target.value)}
+            disabled={!selectedCpt}
           />
         </div>
         <div className="form-group">
@@ -361,10 +372,16 @@ export default function App(): JSX.Element {
             max={50}
             value={limit}
             onChange={(event) => setLimit(Number(event.target.value))}
+            disabled={!selectedCpt}
           />
         </div>
         <div className="form-actions">
-          <button type="submit" className="primary" disabled={loadingPricing}>
+          <button 
+            type="submit" 
+            className="primary" 
+            disabled={loadingPricing || !selectedCpt}
+            title={!selectedCpt ? "Please search and select a procedure first" : ""}
+          >
             {loadingPricing ? "Fetching…" : "Get Estimates"}
           </button>
         </div>
