@@ -66,14 +66,22 @@
                               │ Updated Nightly
                               │
 ┌─────────────────────────────────────────────────────────────────────────┐
+│                    BATCH PROCESSING (Two LLM Agents)                    │
 │                                                                         │
-│               🤖 ADAPTIVE PARSING AGENT (LLM #2)                        │
-│                      Batch Processing                                   │
-│                                                                         │
-│  Hospital Files → Schema Inference → Parse → Validate → Load           │
-│  (Any Format)     (LLM-Powered)                                         │
-│                                                                         │
-│  ✅ MD5 Caching: 50x Faster on Repeat Files                            │
+│  ┌──────────────────────────────────────────────────────────────────┐ │
+│  │  🤖 FILE DISCOVERY AGENT (LLM #2)                                 │ │
+│  │  • Scan hospital URLs intelligently                               │ │
+│  │  • Identify new/updated transparency files                        │ │
+│  │  • Download and queue for processing                              │ │
+│  └──────────────────────────────────────────────────────────────────┘ │
+│                              │                                          │
+│                              ▼                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐ │
+│  │  🤖 ADAPTIVE PARSING AGENT (LLM #3)                               │ │
+│  │  • Schema Inference (learns any format)                           │ │
+│  │  • Parse → Validate → Load                                        │ │
+│  │  • MD5 Caching: 50x Faster on Repeat Files                        │ │
+│  └──────────────────────────────────────────────────────────────────┘ │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -320,60 +328,69 @@ RESULT: 50,000+ records loaded and ready for real-time queries!
 
 ---
 
-## 🎯 Two-Agent Architecture (The Innovation)
+## 🎯 Three-Agent Architecture (The Innovation)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                                                                         │
-│                    🤖 DUAL AI AGENT SYSTEM 🤖                           │
+│                    🤖 TRIPLE AI AGENT SYSTEM 🤖                         │
 │                                                                         │
-│              WHY TWO AGENTS? → SEPARATION OF CONCERNS                   │
+│            WHY THREE AGENTS? → SPECIALIZED FOR EACH TASK                │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 
-┌────────────────────────────────────┬────────────────────────────────────┐
-│                                    │                                    │
-│   🤖 AGENT #1: QUERY AGENT         │   🤖 AGENT #2: PARSING AGENT      │
-│   (Real-Time, User-Facing)         │   (Batch, Backend)                 │
-│                                    │                                    │
-├────────────────────────────────────┼────────────────────────────────────┤
-│                                    │                                    │
-│  PURPOSE:                          │  PURPOSE:                          │
-│  Natural Language Understanding    │  Adaptive File Parsing             │
-│                                    │                                    │
-│  INPUT:                            │  INPUT:                            │
-│  User queries like:                │  Hospital files like:              │
-│  • "MRI knee"                      │  • JSON with nested arrays         │
-│  • "wisdom tooth removal"          │  • CSV with custom headers         │
-│  • "blood test"                    │  • XML with namespaces             │
-│                                    │                                    │
-│  OUTPUT:                           │  OUTPUT:                           │
-│  CPT codes + descriptions          │  Standardized pricing records      │
-│                                    │                                    │
-│  STRATEGIES:                       │  STRATEGIES:                       │
-│  1. Database Word Match            │  1. MD5 Cache Check                │
-│  2. Query-Level Cache              │  2. LLM Schema Inference           │
-│  3. Web Search (DuckDuckGo 3x)     │  3. Heuristic Fallback             │
-│  4. Consensus Mechanism            │  4. Parallel Processing            │
-│  5. LLM Validation (Temp=0)        │  5. Chunked Parsing                │
-│                                    │                                    │
-│  PERFORMANCE:                      │  PERFORMANCE:                      │
-│  • DB Hit: 75ms                    │  • First File: ~2s (LLM)           │
-│  • Cached: <1ms                    │  • Cached: <50ms (hash)            │
-│  • Web Search: ~10s (first)        │  • Parse Speed: 1,200 rows/s       │
-│                                    │                                    │
-│  INNOVATION:                       │  INNOVATION:                       │
-│  ✅ Consensus (3x search)          │  ✅ Learns ANY schema              │
-│  ✅ 100% Consistency               │  ✅ MD5 Caching (50x faster)       │
-│  ✅ Temperature=0                  │  ✅ Handles nested formats         │
-│  ✅ Query caching                  │  ✅ CPT extraction from text       │
-│                                    │                                    │
-│  LLM:                              │  LLM:                              │
-│  OpenRouter API (GPT-4/Claude)     │  OpenRouter API (GPT-4)            │
-│                                    │                                    │
-└────────────────────────────────────┴────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│  🤖 AGENT #1: QUERY UNDERSTANDING (Real-Time, User-Facing)              │
+├──────────────────────────────────────────────────────────────────────────┤
+│  PURPOSE: Natural Language Understanding                                 │
+│  INPUT: User queries ("MRI knee", "wisdom tooth removal")                │
+│  OUTPUT: CPT codes + descriptions                                        │
+│  STRATEGIES:                                                             │
+│    1. Database Word Match                                                │
+│    2. Query-Level Cache                                                  │
+│    3. Web Search (DuckDuckGo 3x)                                         │
+│    4. Consensus Mechanism                                                │
+│    5. LLM Validation (Temp=0)                                            │
+│  PERFORMANCE: 75ms (DB) | <1ms (cached) | ~10s (web first)              │
+│  INNOVATION: ✅ Consensus ✅ 100% Consistency ✅ Query caching            │
+│  LLM: OpenRouter API (GPT-4/Claude)                                      │
+└──────────────────────────────────────────────────────────────────────────┘
 
-KEY INSIGHT: Two specialized agents > One general-purpose agent
+┌──────────────────────────────────────────────────────────────────────────┐
+│  🤖 AGENT #2: FILE DISCOVERY (Batch, Backend)                           │
+├──────────────────────────────────────────────────────────────────────────┤
+│  PURPOSE: Intelligent Hospital File Discovery                            │
+│  INPUT: Hospital URLs, CMS databases                                     │
+│  OUTPUT: Downloaded transparency files ready for parsing                 │
+│  STRATEGIES:                                                             │
+│    1. Web scraping with BeautifulSoup                                    │
+│    2. Pattern recognition for file URLs                                  │
+│    3. Download queue management                                          │
+│    4. Duplicate detection                                                │
+│  PERFORMANCE: Finds and downloads files in minutes (not hours)           │
+│  INNOVATION: ✅ Auto-discovers ✅ Handles updates ✅ Queue management     │
+│  LLM: OpenRouter API (for URL pattern recognition)                       │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│  🤖 AGENT #3: ADAPTIVE PARSING (Batch, Backend)                         │
+├──────────────────────────────────────────────────────────────────────────┤
+│  PURPOSE: Adaptive File Parsing                                          │
+│  INPUT: Hospital files (JSON/CSV/XML, any schema)                        │
+│  OUTPUT: Standardized pricing records                                    │
+│  STRATEGIES:                                                             │
+│    1. MD5 Cache Check                                                    │
+│    2. LLM Schema Inference                                               │
+│    3. Heuristic Fallback                                                 │
+│    4. Parallel Processing                                                │
+│    5. Chunked Parsing                                                    │
+│  PERFORMANCE: 2s (LLM first) | <50ms (cached) | 1,200 rows/s            │
+│  INNOVATION: ✅ Learns ANY schema ✅ MD5 Caching ✅ Nested formats        │
+│  LLM: OpenRouter API (GPT-4)                                             │
+└──────────────────────────────────────────────────────────────────────────┘
+
+KEY INSIGHT: Three specialized agents > One general-purpose agent
+            Each agent is optimized for its specific task!
 ```
 
 ---
@@ -587,7 +604,7 @@ Production-Ready          │     ✅      │     ❌      │ Deploy today
 [0:30-1:30] THE SOLUTION
   ┌──────────────────────────────┐
   │ 🐧 PenguinCare Widget        │
-  │ 🤖 Two AI Agents             │
+  │ 🤖 Three AI Agents           │
   │ ⚡ Real-Time + Batch          │
   │ 📊 50,000+ Records            │
   └──────────────────────────────┘
@@ -619,10 +636,11 @@ Production-Ready          │     ✅      │     ❌      │ Deploy today
 
 [3:30-4:30] THE INNOVATION
   ┌──────────────────────────────┐
-  │ 🎯 Dual Agent Architecture   │
+  │ 🎯 Triple Agent Architecture │
   │ 🔐 Consensus Mechanism       │
   │ 💾 Query Caching             │
   │ 📚 Schema Learning           │
+  │ 🔍 Intelligent File Discovery│
   │ ⚡ 240x Faster               │
   └──────────────────────────────┘
 
