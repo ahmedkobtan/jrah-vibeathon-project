@@ -5,6 +5,7 @@ import {
   ProviderSummary,
   fetchPriceEstimates,
   fetchProcedures,
+  smartSearchProcedures,
   lookupProviders,
 } from "./api";
 
@@ -104,24 +105,31 @@ export default function App(): JSX.Element {
 
     try {
       setLoadingProcedures(true);
-      const data = await fetchProcedures(procedureQuery);
-      // If there's a search query, show matching results prioritized
+      
+      // Use smart search if there's a query (AI-powered)
       if (procedureQuery.trim()) {
+        const smartResults = await smartSearchProcedures(procedureQuery, 10);
+        
+        // Check if any demo procedures match
         const matchingDemos = demoProcedures.filter(
           (demo) =>
             demo.cpt_code.toLowerCase().includes(procedureQuery.toLowerCase()) ||
             demo.description.toLowerCase().includes(procedureQuery.toLowerCase())
         );
-        const otherResults = data.filter(
+        
+        // Combine: demo matches first, then AI results (removing duplicates)
+        const otherResults = smartResults.filter(
           (p) => !demoProcedures.find((demo) => demo.cpt_code === p.cpt_code)
         );
         const allProcedures = [...matchingDemos, ...otherResults];
+        
         setProcedures(allProcedures);
         if (allProcedures.length > 0) {
           setSelectedCpt(allProcedures[0].cpt_code);
         }
       } else {
-        // No search query - use default behavior with demos at top
+        // No search query - load all procedures with demos at top
+        const data = await fetchProcedures();
         const otherProcedures = data.filter(
           (p) => !demoProcedures.find((demo) => demo.cpt_code === p.cpt_code)
         );
@@ -503,4 +511,3 @@ export default function App(): JSX.Element {
     </div>
   );
 }
-

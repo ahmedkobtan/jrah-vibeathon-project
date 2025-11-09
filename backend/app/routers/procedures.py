@@ -2,6 +2,7 @@
 Procedure-related API endpoints.
 """
 
+import os
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -10,8 +11,16 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_db
 from app.schemas import ProcedureSummary
 from database import Procedure
+from agents.query_understanding_agent import QueryUnderstandingAgent
+from agents.openrouter_llm import OpenRouterLLMClient
 
 router = APIRouter()
+
+
+def get_llm_client():
+    """Get LLM client for Query Understanding Agent"""
+    api_key = os.getenv("OPENROUTER_API_KEY", "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")
+    return OpenRouterLLMClient(api_key=api_key)
 
 
 @router.get("/", response_model=List[ProcedureSummary])
@@ -51,6 +60,46 @@ def list_procedures(
         Procedure.cpt_code.asc()
     ).limit(limit).all()
     return [ProcedureSummary.model_validate(procedure) for procedure in procedures]
+
+
+@router.get("/smart-search", response_model=List[ProcedureSummary])
+def smart_search_procedures(
+    q: str = Query(..., description="Natural language query (e.g., 'knee MRI', 'chest x-ray')"),
+    limit: int = Query(10, ge=1, le=50, description="Maximum number of results"),
+    db: Session = Depends(get_db),
+) -> List[ProcedureSummary]:
+    """
+    AI-powered procedure search using Query Understanding Agent.
+    
+    Uses LLM to understand natural language and match to procedure descriptions in database.
+    Examples:
+    - "knee MRI" → finds MRI procedures for knee
+    - "chest x-ray" → finds chest x-ray procedures  
+    - "colonoscopy" → finds colonoscopy procedures
+    """
+    try:
+        llm_client = get_llm_client()
+        agent = QueryUnderstandingAgent(llm_client, db)
+        
+        # Use agent to search
+        results = agent.search_procedures(q, limit)
+        
+        # Convert to ProcedureSummary format
+        procedures = []
+        for result in results:
+            proc = db.query(Procedure).filter(
+                Procedure.cpt_code == result["cpt_code"]
+            ).first()
+            if proc:
+                procedures.append(ProcedureSummary.model_validate(proc))
+        
+        return procedures
+        
+    except Exception as e:
+        print(f"Smart search error: {e}")
+        # Fallback to regular search
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
 
 @router.get("/{cpt_code}", response_model=ProcedureSummary)
