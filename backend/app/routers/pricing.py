@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from app.dependencies import get_db, get_search_client
 from app.schemas import PriceEstimateResponse
 from app.services import PricingService
 
@@ -50,11 +50,18 @@ def get_price_estimates(
         description="Maximum number of price records to return",
     ),
     db: Session = Depends(get_db),
+    search_client = Depends(get_search_client),
 ) -> PriceEstimateResponse:
     """
     Return pricing details for the requested CPT code.
+    
+    Pricing lookup follows this waterfall strategy:
+    1. Database: Look for actual negotiated rates from price transparency data
+    2. NPI Registry: If no data, find providers via CMS NPI Registry and estimate prices
+    3. Web Search: If NPI yields no results, search web for pricing (DuckDuckGo preferred, Google if configured)
+    4. Algorithmic: Generate reasonable estimates based on Medicare rates
     """
-    service = PricingService(db)
+    service = PricingService(db, search_client=search_client)
     return service.fetch_price_estimates(
         cpt_code=cpt_code,
         payer_name=payer_name,

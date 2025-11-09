@@ -43,50 +43,6 @@ def list_providers(
     return [ProviderSummary.model_validate(provider) for provider in providers]
 
 
-@router.get("/{provider_id}", response_model=ProviderSummary)
-def get_provider(provider_id: int, db: Session = Depends(get_db)) -> ProviderSummary:
-    """
-    Retrieve a single provider by ID.
-    """
-    provider = db.query(Provider).filter(Provider.id == provider_id).first()
-
-    if not provider:
-        raise HTTPException(status_code=404, detail="Provider not found")
-
-    return ProviderSummary.model_validate(provider)
-
-
-@router.get("/{provider_id}/prices", response_model=List[PriceEstimateItem])
-def get_provider_prices(
-    provider_id: int,
-    db: Session = Depends(get_db),
-) -> List[PriceEstimateItem]:
-    """
-    Retrieve all price transparency records for a provider.
-    """
-    provider = db.query(Provider).filter(Provider.id == provider_id).first()
-    if not provider:
-        raise HTTPException(status_code=404, detail="Provider not found")
-
-    records = (
-        db.query(PriceTransparency, Procedure)
-        .join(Procedure, PriceTransparency.cpt_code == Procedure.cpt_code)
-        .filter(PriceTransparency.provider_id == provider_id)
-        .order_by(PriceTransparency.payer_name.asc())
-        .all()
-    )
-
-    provider_summary = ProviderSummary.model_validate(provider)
-    return [
-        PriceEstimateItem(
-            provider=provider_summary,
-            procedure=ProcedureSummary.model_validate(procedure),
-            price=PriceDetail.model_validate(price),
-        )
-        for price, procedure in records
-    ]
-
-
 @router.get("/lookup", response_model=List[ProviderSummary])
 def lookup_providers(
     city: str,
@@ -142,4 +98,48 @@ def lookup_providers(
             break
 
     return summaries
+
+
+@router.get("/{provider_id}", response_model=ProviderSummary)
+def get_provider(provider_id: int, db: Session = Depends(get_db)) -> ProviderSummary:
+    """
+    Retrieve a single provider by ID.
+    """
+    provider = db.query(Provider).filter(Provider.id == provider_id).first()
+
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider not found")
+
+    return ProviderSummary.model_validate(provider)
+
+
+@router.get("/{provider_id}/prices", response_model=List[PriceEstimateItem])
+def get_provider_prices(
+    provider_id: int,
+    db: Session = Depends(get_db),
+) -> List[PriceEstimateItem]:
+    """
+    Retrieve all price transparency records for a provider.
+    """
+    provider = db.query(Provider).filter(Provider.id == provider_id).first()
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider not found")
+
+    records = (
+        db.query(PriceTransparency, Procedure)
+        .join(Procedure, PriceTransparency.cpt_code == Procedure.cpt_code)
+        .filter(PriceTransparency.provider_id == provider_id)
+        .order_by(PriceTransparency.payer_name.asc())
+        .all()
+    )
+
+    provider_summary = ProviderSummary.model_validate(provider)
+    return [
+        PriceEstimateItem(
+            provider=provider_summary,
+            procedure=ProcedureSummary.model_validate(procedure),
+            price=PriceDetail.model_validate(price),
+        )
+        for price, procedure in records
+    ]
 
