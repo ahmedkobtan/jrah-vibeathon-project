@@ -65,10 +65,13 @@ python3 -m http.server 8081 &
 
 ### Part 2: Our Solution (1 minute)
 **What to say:**
-> "PenguinCare is an embeddable AI-powered widget that hospitals can add to their websites in 5 minutes. It uses two LLM agents working together:
+> "PenguinCare is an embeddable AI-powered widget that hospitals can add to their websites in 5 minutes. It uses FIVE specialized AI agents working together:
 > 
-> 1. **Batch Processing Agent**: Adaptively parses ANY hospital file format
-> 2. **Real-Time Query Agent**: Understands natural language searches
+> 1. **Query Understanding Agent**: Understands natural language searches
+> 2. **File Discovery Agent**: Finds hospital price transparency files
+> 3. **Adaptive Parsing Agent**: Parses ANY hospital file format
+> 4. **Pricing Estimation Agent**: Estimates costs using web search + LLM
+> 5. **Search Engine Agent**: Dual search (DuckDuckGo + Google)
 >
 > The result? Patients get instant, accurate cost estimates BEFORE scheduling procedures."
 
@@ -160,19 +163,34 @@ python3 -m http.server 8081 &
 
 ### Part 6: The Innovation (30 seconds)
 **What to say:**
-> "The innovation isn't just the widget - it's the TWO AI agents working together:
+> "The innovation isn't just the widget - it's the FIVE specialized AI agents working together:
 >
-> **Backend Agent** (Batch Processing):
-> - Parses ANY hospital file format automatically
-> - Schema inference with LLM (learns each hospital's unique format)
-> - MD5 caching (50x faster on repeat files)
-> - Processed 50,000+ Freeman records
+> **Real-Time Agents** (User-Facing):
+> 1. **Query Understanding Agent**: Natural language → CPT codes
+>    - Consensus mechanism (3x DuckDuckGo search)
+>    - LLM validation (temperature=0 for consistency)
+>    - Query-level caching (100% consistent results)
 >
-> **Frontend Agent** (Real-Time):
-> - Natural language query understanding
-> - Consensus-based web search (3x DuckDuckGo, 2x Google)
-> - LLM validation (temperature=0 for consistency)
-> - Query-level caching (100% consistent results)
+> 2. **Pricing Estimation Agent**: Smart fallback when DB empty
+>    - Web search via Agent #5
+>    - Statistical aggregation + outlier removal
+>    - LLM-refined estimates with confidence scores
+>
+> 3. **Search Engine Agent**: Dual-engine web search
+>    - DuckDuckGo (no API key needed!)
+>    - Google Custom Search (fallback)
+>    - Extracts prices from search results
+>
+> **Batch Agents** (Backend Processing):
+> 4. **File Discovery Agent**: Finds hospital files automatically
+>    - Web scraping + pattern recognition
+>    - MD5 duplicate detection
+>    - Download queue management
+>
+> 5. **Adaptive Parsing Agent**: Parses ANY format
+>    - Schema inference with LLM
+>    - MD5 caching (50x faster on repeat)
+>    - Processed 50,000+ Freeman records
 >
 > Result: 100% transparent, 100% accurate, 240x faster than manual price discovery."
 
@@ -185,15 +203,24 @@ python3 -m http.server 8081 &
 ## 🎯 Key Demo Points to Emphasize
 
 ### 1. LLM Innovation (30% of score)
-✅ **Two agents, two purposes:**
-- Batch agent: Adaptive parsing with schema learning
-- Query agent: Natural language understanding with web search
+✅ **Five specialized agents:**
+- Query Understanding: Natural language → CPT codes
+- File Discovery: Auto-finds hospital files
+- Adaptive Parsing: Schema learning for ANY format
+- Pricing Estimation: Smart fallback with LLM analysis
+- Search Engine: Dual-engine (DuckDuckGo + Google)
 
 ✅ **Consensus mechanism:**
-- 3x DuckDuckGo searches
-- Only keep CPT codes appearing ≥2 times
-- 2x Google searches as fallback
+- 3x DuckDuckGo searches for CPT codes
+- Only keep codes appearing ≥2 times
+- LLM validation (temperature=0)
 - Filters false positives
+
+✅ **Smart price estimation:**
+- 15+ web sources aggregated
+- Statistical outlier removal (IQR method)
+- LLM refines estimates with medical context
+- Confidence scoring (0.25-0.85)
 
 ✅ **100% consistency:**
 - Query-level caching
@@ -306,12 +333,15 @@ python3 -m http.server 8081 &
 
 ## 🏆 Winning Differentiators
 
-### 1. Two LLM Agents (Not Just One)
-> "Most solutions use one LLM for everything. We use TWO specialized agents:
-> - One for batch processing (learns file schemas)
-> - One for real-time queries (understands user intent)
+### 1. Five Specialized AI Agents (Not One Generic)
+> "Most solutions use one LLM for everything. We use FIVE hyper-specialized agents:
+> - Query Understanding: Natural language → CPT codes
+> - File Discovery: Auto-finds hospital transparency files
+> - Adaptive Parsing: Learns ANY file schema
+> - Pricing Estimation: Smart fallback using web search + LLM
+> - Search Engine: Dual-engine web search (DuckDuckGo + Google)
 > 
-> This separation of concerns makes each agent more effective."
+> This extreme specialization makes each agent incredibly effective at its specific task."
 
 ### 2. Consensus Mechanism
 > "We don't trust a single web search. We search multiple times, keep only codes that appear in multiple results, then validate with LLM. This eliminates false positives."
@@ -405,14 +435,16 @@ A: Yes! Hospitals add `<iframe src="https://penguincare.ai/widget">` to their si
 
 **What makes PenguinCare special:**
 
-1. ✅ **Two specialized LLM agents** (not one generic agent)
+1. ✅ **Five specialized AI agents** (not one generic agent)
 2. ✅ **Consensus mechanism** (3x search, keep codes appearing ≥2 times)
 3. ✅ **100% consistency** (query caching guarantees identical results)
-4. ✅ **Real production data** (50,000+ records from Freeman Health)
-5. ✅ **Embeddable widget** (proven with 2 demo hospital sites)
-6. ✅ **Adaptive parsing** (works with ANY hospital file format)
-7. ✅ **Lightning fast** (75ms database queries, <1ms cached)
-8. ✅ **Solves $220B problem** (medical debt crisis)
+4. ✅ **Smart price estimation** (web search + LLM analysis + confidence scores)
+5. ✅ **Real production data** (50,000+ records from Freeman Health)
+6. ✅ **Embeddable widget** (proven with 2 demo hospital sites)
+7. ✅ **Adaptive parsing** (works with ANY hospital file format)
+8. ✅ **Dual search engines** (DuckDuckGo + Google, no key needed)
+9. ✅ **Lightning fast** (75ms database queries, <1ms cached)
+10. ✅ **Solves $220B problem** (medical debt crisis)
 
 **This is production-ready, scalable, and ready to help millions of patients get price transparency BEFORE treatment.**
 

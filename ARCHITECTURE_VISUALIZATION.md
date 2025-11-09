@@ -328,29 +328,29 @@ RESULT: 50,000+ records loaded and ready for real-time queries!
 
 ---
 
-## 🎯 Three-Agent Architecture (The Innovation)
+## 🎯 Five-Agent Architecture (The Innovation)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                                                                         │
-│                    🤖 TRIPLE AI AGENT SYSTEM 🤖                         │
+│                   🤖 FIVE-AGENT AI SYSTEM 🤖                           │
 │                                                                         │
-│            WHY THREE AGENTS? → SPECIALIZED FOR EACH TASK                │
+│          WHY FIVE AGENTS? → HYPER-SPECIALIZED FOR EACH TASK            │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────────┐
 │  🤖 AGENT #1: QUERY UNDERSTANDING (Real-Time, User-Facing)              │
 ├──────────────────────────────────────────────────────────────────────────┤
-│  PURPOSE: Natural Language Understanding                                 │
+│  PURPOSE: Natural Language Understanding for Procedures                  │
 │  INPUT: User queries ("MRI knee", "wisdom tooth removal")                │
 │  OUTPUT: CPT codes + descriptions                                        │
 │  STRATEGIES:                                                             │
-│    1. Database Word Match                                                │
-│    2. Query-Level Cache                                                  │
-│    3. Web Search (DuckDuckGo 3x)                                         │
-│    4. Consensus Mechanism                                                │
-│    5. LLM Validation (Temp=0)                                            │
+│    1. Database Word Match (semantic similarity)                          │
+│    2. Query-Level Cache (100% consistency)                               │
+│    3. Web Search (DuckDuckGo 3x + Google fallback)                       │
+│    4. Consensus Mechanism (≥2 occurrences)                               │
+│    5. LLM Validation (Temperature=0 for determinism)                     │
 │  PERFORMANCE: 75ms (DB) | <1ms (cached) | ~10s (web first)              │
 │  INNOVATION: ✅ Consensus ✅ 100% Consistency ✅ Query caching            │
 │  LLM: OpenRouter API (GPT-4/Claude)                                      │
@@ -366,7 +366,7 @@ RESULT: 50,000+ records loaded and ready for real-time queries!
 │    1. Web scraping with BeautifulSoup                                    │
 │    2. Pattern recognition for file URLs                                  │
 │    3. Download queue management                                          │
-│    4. Duplicate detection                                                │
+│    4. Duplicate detection (MD5 hashing)                                  │
 │  PERFORMANCE: Finds and downloads files in minutes (not hours)           │
 │  INNOVATION: ✅ Auto-discovers ✅ Handles updates ✅ Queue management     │
 │  LLM: OpenRouter API (for URL pattern recognition)                       │
@@ -375,22 +375,60 @@ RESULT: 50,000+ records loaded and ready for real-time queries!
 ┌──────────────────────────────────────────────────────────────────────────┐
 │  🤖 AGENT #3: ADAPTIVE PARSING (Batch, Backend)                         │
 ├──────────────────────────────────────────────────────────────────────────┤
-│  PURPOSE: Adaptive File Parsing                                          │
+│  PURPOSE: Adaptive File Parsing (Any Format)                             │
 │  INPUT: Hospital files (JSON/CSV/XML, any schema)                        │
 │  OUTPUT: Standardized pricing records                                    │
 │  STRATEGIES:                                                             │
-│    1. MD5 Cache Check                                                    │
-│    2. LLM Schema Inference                                               │
-│    3. Heuristic Fallback                                                 │
-│    4. Parallel Processing                                                │
-│    5. Chunked Parsing                                                    │
+│    1. MD5 Cache Check (instant schema retrieval)                         │
+│    2. LLM Schema Inference (learns field mappings)                       │
+│    3. Heuristic Fallback (regex patterns)                                │
+│    4. Parallel Processing (multi-file)                                   │
+│    5. Chunked Parsing (1000-row batches)                                 │
 │  PERFORMANCE: 2s (LLM first) | <50ms (cached) | 1,200 rows/s            │
 │  INNOVATION: ✅ Learns ANY schema ✅ MD5 Caching ✅ Nested formats        │
 │  LLM: OpenRouter API (GPT-4)                                             │
 └──────────────────────────────────────────────────────────────────────────┘
 
-KEY INSIGHT: Three specialized agents > One general-purpose agent
-            Each agent is optimized for its specific task!
+┌──────────────────────────────────────────────────────────────────────────┐
+│  🤖 AGENT #4: PRICING ESTIMATION (Real-Time, Fallback)                  │
+├──────────────────────────────────────────────────────────────────────────┤
+│  PURPOSE: Intelligent Price Estimation When No Database Match            │
+│  INPUT: CPT code, location, insurance (when DB has no data)              │
+│  OUTPUT: Estimated negotiated rates with confidence scores               │
+│  STRATEGIES:                                                             │
+│    1. Web Search via Agent #5 (15+ sources)                              │
+│    2. Price Extraction (regex patterns for $X,XXX.XX)                    │
+│    3. Statistical Aggregation (median, IQR outlier removal)              │
+│    4. LLM Analysis (refines estimate with context)                       │
+│    5. Confidence Scoring (source count + variance)                       │
+│  PERFORMANCE: ~5s (web search) | Confidence: 0.25-0.85                   │
+│  INNOVATION: ✅ LLM-refined ✅ Multi-source ✅ Outlier removal            │
+│  LLM: OpenRouter API (GPT-4 for analysis)                                │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│  🔍 AGENT #5: SEARCH ENGINE (Real-Time, External API)                   │
+├──────────────────────────────────────────────────────────────────────────┤
+│  PURPOSE: Web Search for Healthcare Pricing Data                         │
+│  INPUT: CPT code, location queries                                       │
+│  OUTPUT: Search results with extracted prices                            │
+│  IMPLEMENTATION:                                                         │
+│    • DuckDuckGo API (primary, no key required)                           │
+│    • Google Custom Search API (fallback)                                 │
+│    • Extracts prices from snippets/titles                                │
+│    • Identifies providers and locations                                  │
+│  PERFORMANCE: ~2-3s per search | 10-15 results                           │
+│  INNOVATION: ✅ No API key (DDG) ✅ Dual-engine ✅ Price extraction      │
+│  API: DuckDuckGo Search API + Google CSE                                 │
+└──────────────────────────────────────────────────────────────────────────┘
+
+KEY INSIGHT: Five hyper-specialized agents > One general-purpose agent
+            Each agent is optimized for a specific subtask in the pipeline!
+            
+AGENT COLLABORATION:
+  Agent #1 + #5 → Find procedures from natural language
+  Agent #2 + #3 → Discover and parse hospital files  
+  Agent #4 + #5 → Estimate prices when database is empty
 ```
 
 ---
@@ -604,7 +642,7 @@ Production-Ready          │     ✅      │     ❌      │ Deploy today
 [0:30-1:30] THE SOLUTION
   ┌──────────────────────────────┐
   │ 🐧 PenguinCare Widget        │
-  │ 🤖 Three AI Agents           │
+  │ 🤖 Five AI Agents            │
   │ ⚡ Real-Time + Batch          │
   │ 📊 50,000+ Records            │
   └──────────────────────────────┘
@@ -635,14 +673,16 @@ Production-Ready          │     ✅      │     ❌      │ Deploy today
   └────────────┴─────────────────┘
 
 [3:30-4:30] THE INNOVATION
-  ┌──────────────────────────────┐
-  │ 🎯 Triple Agent Architecture │
-  │ 🔐 Consensus Mechanism       │
-  │ 💾 Query Caching             │
-  │ 📚 Schema Learning           │
-  │ 🔍 Intelligent File Discovery│
-  │ ⚡ 240x Faster               │
-  └──────────────────────────────┘
+  ┌──────────────────────────────────┐
+  │ 🎯 Five-Agent Architecture       │
+  │ 🔐 Consensus Mechanism           │
+  │ 💾 Query Caching (100%)          │
+  │ 📚 Schema Learning (adaptive)    │
+  │ 🔍 Intelligent File Discovery    │
+  │ 💰 Smart Price Estimation        │
+  │ 🌐 Dual Search Engines          │
+  │ ⚡ 240x Faster                   │
+  └──────────────────────────────────┘
 
 [4:30-5:00] IMPACT & CLOSE
   ┌──────────────────────────────┐
