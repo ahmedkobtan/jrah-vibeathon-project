@@ -41,7 +41,6 @@ export default function App(): JSX.Element {
   const [procedures, setProcedures] = useState<ProcedureSummary[]>([]);
   const [selectedCpt, setSelectedCpt] = useState("");
   const [payerName, setPayerName] = useState("");
-  const [stateFilter, setStateFilter] = useState("");
   const [zipFilter, setZipFilter] = useState("");
   const [limit, setLimit] = useState(10);
 
@@ -71,6 +70,7 @@ export default function App(): JSX.Element {
     },
   ];
 
+  // Debounced procedure search (auto-search after 1 second of no typing)
   useEffect(() => {
     const loadProcedures = async () => {
       try {
@@ -100,49 +100,46 @@ export default function App(): JSX.Element {
     loadProcedures();
   }, []);
 
-  const handleProcedureSearch = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  // Debounced search: trigger after 1 second of no typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (procedureQuery.trim()) {
+        performProcedureSearch();
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [procedureQuery]);
+
+  const performProcedureSearch = async () => {
     setError(null);
 
     try {
       setLoadingProcedures(true);
+      setError(null);
       
-      // Use smart search if there's a query (AI-powered)
-      if (procedureQuery.trim()) {
-        const smartResults = await smartSearchProcedures(procedureQuery, 10);
-        
-        // Check if any demo procedures match
-        const matchingDemos = demoProcedures.filter(
-          (demo) =>
-            demo.cpt_code.toLowerCase().includes(procedureQuery.toLowerCase()) ||
-            demo.description.toLowerCase().includes(procedureQuery.toLowerCase())
-        );
-        
-        // Combine: demo matches first, then AI results (removing duplicates)
-        const otherResults = smartResults.filter(
-          (p) => !demoProcedures.find((demo) => demo.cpt_code === p.cpt_code)
-        );
-        const allProcedures = [...matchingDemos, ...otherResults];
-        
-        setProcedures(allProcedures);
-        if (allProcedures.length > 0) {
-          setSelectedCpt(allProcedures[0].cpt_code);
-        } else {
-          // No procedures found - clear selection and show error
-          setSelectedCpt("");
-          setError(`No procedures found for "${procedureQuery}". Try a different search term like "MRI", "X-ray", or "colonoscopy".`);
-        }
+      const smartResults = await smartSearchProcedures(procedureQuery, 10);
+      
+      // Check if any demo procedures match
+      const matchingDemos = demoProcedures.filter(
+        (demo) =>
+          demo.cpt_code.toLowerCase().includes(procedureQuery.toLowerCase()) ||
+          demo.description.toLowerCase().includes(procedureQuery.toLowerCase())
+      );
+      
+      // Combine: demo matches first, then AI results (removing duplicates)
+      const otherResults = smartResults.filter(
+        (p) => !demoProcedures.find((demo) => demo.cpt_code === p.cpt_code)
+      );
+      const allProcedures = [...matchingDemos, ...otherResults];
+      
+      setProcedures(allProcedures);
+      if (allProcedures.length > 0) {
+        setSelectedCpt(allProcedures[0].cpt_code);
       } else {
-        // No search query - load all procedures with demos at top
-        const data = await fetchProcedures();
-        const otherProcedures = data.filter(
-          (p) => !demoProcedures.find((demo) => demo.cpt_code === p.cpt_code)
-        );
-        const allProcedures = [...demoProcedures, ...otherProcedures];
-        setProcedures(allProcedures);
-        if (allProcedures.length > 0) {
-          setSelectedCpt(allProcedures[0].cpt_code);
-        }
+        // No procedures found - clear selection and show error
+        setSelectedCpt("");
+        setError(`No procedures found for "${procedureQuery}". Try a different search term like "MRI", "X-ray", or "colonoscopy".`);
       }
     } catch (err) {
       console.error(err);
@@ -156,77 +153,73 @@ export default function App(): JSX.Element {
     }
   };
 
-  const handleEstimateRequest = async (
-    event: FormEvent<HTMLFormElement>,
-  ) => {
+  // Handle Enter key press in search input
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (procedureQuery.trim()) {
+        performProcedureSearch();
+      }
+    }
+  };
+
+  // Combined handler for both pricing and provider lookup
+  const handleGetPricing = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setPricing(null);
+    setProviders([]);
 
     if (!selectedCpt) {
       setError("Select a procedure to continue.");
       return;
     }
 
+    // Start both requests
+    setLoadingPricing(true);
+    setLoadingProviderLookup(true);
+
     try {
-      setLoadingPricing(true);
+      // Run both API calls in parallel
       const providerLimitValue = Number(providerLimit) || undefined;
-      const response = await fetchPriceEstimates({
-        cptCode: selectedCpt,
-        payerName: payerName.trim() || undefined,
-        state: stateFilter.trim() || undefined,
-        zipCode: zipFilter.trim() || undefined,
-        limit,
-        providerCity: providerCity.trim() || undefined,
-        providerState: providerState.trim().toUpperCase() || undefined,
-        providerLimit: providerLimitValue,
-      });
-      setPricing(response);
+      
+      const [pricingResponse, providersResponse] = await Promise.all([
+        // Get price estimates
+        fetchPriceEstimates({
+          cptCode: selectedCpt,
+          payerName: payerName.trim() || undefined,
+          state: undefined, // Removed state filter
+          zipCode: zipFilter.trim() || undefined,
+          limit,
+          providerCity: providerCity.trim() || undefined,
+          providerState: providerState.trim().toUpperCase() || undefined,
+          providerLimit: providerLimitValue,
+        }),
+        // Get provider list
+        providerCity.trim() && providerState.trim().length === 2
+          ? lookupProviders(
+              providerCity.trim(),
+              providerState.trim().toUpperCase(),
+              providerLimitValue || 20
+            )
+          : Promise.resolve([])
+      ]);
+
+      setPricing(pricingResponse);
+      setProviders(providersResponse);
     } catch (err) {
       console.error(err);
       setError(
         err instanceof Error
           ? err.message
-          : "Unable to fetch price estimates.",
+          : "Unable to fetch data.",
       );
     } finally {
       setLoadingPricing(false);
-    }
-  };
-
-  const handleProviderLookup = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-
-    const city = providerCity.trim();
-    const state = providerState.trim().toUpperCase();
-    const limitValue = Number(providerLimit);
-
-    if (!city || state.length !== 2) {
-      setError("Enter city and two-letter state to search providers.");
-      return;
-    }
-
-    if (!Number.isInteger(limitValue) || limitValue < 1 || limitValue > 50) {
-      setError("Provider limit must be an integer between 1 and 50.");
-      return;
-    }
-
-    try {
-      setLoadingProviderLookup(true);
-      const results = await lookupProviders(city, state, limitValue);
-      setProviders(results);
-    } catch (err) {
-      console.error(err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to look up providers right now.",
-      );
-    } finally {
       setLoadingProviderLookup(false);
     }
   };
+
 
   const selectedProcedure = useMemo(
     () => procedures.find((proc) => proc.cpt_code === selectedCpt),
@@ -247,16 +240,28 @@ export default function App(): JSX.Element {
         </div>
       </div>
 
-      <form className="form-grid" onSubmit={handleProcedureSearch}>
+      <div className="form-grid">
         <div className="form-group">
-          <label htmlFor="procedure-search">Find a procedure</label>
+          <label htmlFor="procedure-search">
+            Find a procedure
+            <span style={{ fontSize: "0.85rem", color: "#666", marginLeft: "0.5rem" }}>
+              (Start typing - debounced 1s or press Enter)
+            </span>
+          </label>
           <input
             id="procedure-search"
             type="search"
-            placeholder="Search by CPT code or description"
+            placeholder="Try 'MRI knee', 'X-ray chest', 'blood test'..."
             value={procedureQuery}
             onChange={(event) => setProcedureQuery(event.target.value)}
+            onKeyPress={handleSearchKeyPress}
+            disabled={loadingProcedures}
           />
+          {loadingProcedures && (
+            <div style={{ fontSize: "0.85rem", color: "#0066cc", marginTop: "0.25rem" }}>
+              🔍 Searching...
+            </div>
+          )}
         </div>
         <div className="form-group">
           <label htmlFor="procedure-select">Procedure</label>
@@ -273,18 +278,9 @@ export default function App(): JSX.Element {
             ))}
           </select>
         </div>
-        <div className="form-actions">
-          <button
-            type="submit"
-            className="primary"
-            disabled={loadingProcedures}
-          >
-            {loadingProcedures ? "Searching…" : "Search Procedures"}
-          </button>
-        </div>
-      </form>
+      </div>
 
-      <form className="form-grid" onSubmit={handleProviderLookup}>
+      <form className="form-grid" onSubmit={handleGetPricing}>
         <div className="form-group">
           <label htmlFor="provider-city">Provider city</label>
           <input
@@ -311,31 +307,6 @@ export default function App(): JSX.Element {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="provider-limit">Result limit</label>
-          <input
-            id="provider-limit"
-            type="number"
-            min={1}
-            max={50}
-            value={providerLimit}
-            onChange={(event) => setProviderLimit(event.target.value)}
-            disabled={!selectedCpt}
-          />
-        </div>
-        <div className="form-actions">
-          <button
-            type="submit"
-            className="primary"
-            disabled={loadingProviderLookup || !selectedCpt}
-            title={!selectedCpt ? "Please search and select a procedure first" : ""}
-          >
-            {loadingProviderLookup ? "Looking up…" : "Lookup Providers"}
-          </button>
-        </div>
-      </form>
-
-      <form className="form-grid" onSubmit={handleEstimateRequest}>
-        <div className="form-group">
           <label htmlFor="payer-name">Payer (optional)</label>
           <input
             id="payer-name"
@@ -343,18 +314,6 @@ export default function App(): JSX.Element {
             placeholder="Blue Cross, Medicare, United…"
             value={payerName}
             onChange={(event) => setPayerName(event.target.value)}
-            disabled={!selectedCpt}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="state">State (optional)</label>
-          <input
-            id="state"
-            type="text"
-            placeholder="MO"
-            maxLength={2}
-            value={stateFilter}
-            onChange={(event) => setStateFilter(event.target.value)}
             disabled={!selectedCpt}
           />
         </div>
@@ -370,7 +329,7 @@ export default function App(): JSX.Element {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="limit">Result limit</label>
+          <label htmlFor="limit">Price limit</label>
           <input
             id="limit"
             type="number"
@@ -381,14 +340,27 @@ export default function App(): JSX.Element {
             disabled={!selectedCpt}
           />
         </div>
-        <div className="form-actions">
+        <div className="form-group">
+          <label htmlFor="provider-limit">Provider limit</label>
+          <input
+            id="provider-limit"
+            type="number"
+            min={1}
+            max={50}
+            value={providerLimit}
+            onChange={(event) => setProviderLimit(event.target.value)}
+            disabled={!selectedCpt}
+          />
+        </div>
+        <div className="form-actions" style={{ gridColumn: "1 / -1" }}>
           <button 
             type="submit" 
             className="primary" 
-            disabled={loadingPricing || !selectedCpt}
+            disabled={loadingPricing || loadingProviderLookup || !selectedCpt}
             title={!selectedCpt ? "Please search and select a procedure first" : ""}
+            style={{ width: "100%", padding: "0.75rem 1.5rem", fontSize: "1rem" }}
           >
-            {loadingPricing ? "Fetching…" : "Get Estimates"}
+            {loadingPricing || loadingProviderLookup ? "Loading..." : "🔍 Get Pricing & Find Providers"}
           </button>
         </div>
       </form>
