@@ -1,8 +1,10 @@
 # Healthcare Price Transparency Platform - Backend Dependencies
 
 # Core Framework
+fastapi==0.111.0
 sqlalchemy==2.0.23
 pandas==2.1.3
+uvicorn[standard]==0.27.1
 
 # Database
 psycopg2-binary==2.9.9  # PostgreSQL driver
