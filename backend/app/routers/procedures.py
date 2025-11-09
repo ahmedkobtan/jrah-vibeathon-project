@@ -41,7 +41,15 @@ def list_procedures(
             Procedure.cpt_code.op('GLOB')('[0-9][0-9][0-9][0-9][0-9]')
         )
 
-    procedures = query.order_by(Procedure.cpt_code.asc()).limit(limit).all()
+    # Prioritize procedures with categories (common procedures) first, then by CPT code
+    from sqlalchemy import case
+    procedures = query.order_by(
+        case(
+            (Procedure.category.isnot(None), 0),
+            else_=1
+        ),
+        Procedure.cpt_code.asc()
+    ).limit(limit).all()
     return [ProcedureSummary.model_validate(procedure) for procedure in procedures]
 
 

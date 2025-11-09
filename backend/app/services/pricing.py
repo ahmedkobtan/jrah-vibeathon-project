@@ -131,6 +131,8 @@ class PricingService:
             provider_city=provider_city,
             provider_state=provider_state,
             provider_limit=provider_limit,
+            state_filter=state,
+            zip_filter=zip_code,
         )
 
         rates = [
@@ -207,6 +209,8 @@ class PricingService:
         provider_city: Optional[str],
         provider_state: Optional[str],
         provider_limit: int,
+        state_filter: Optional[str] = None,
+        zip_filter: Optional[str] = None,
     ) -> list[PriceEstimateItem]:
         if not provider_city or not provider_state:
             return []
@@ -222,6 +226,16 @@ class PricingService:
 
         items: list[PriceEstimateItem] = []
         for entry in lookup_results:
+            # Apply state filter if provided
+            if state_filter and entry.address.state != state_filter.upper():
+                continue
+            
+            # Apply ZIP filter if provided
+            if zip_filter and entry.address.postal_code:
+                # Extract first 5 digits for comparison
+                entry_zip = entry.address.postal_code.split('-')[0]
+                if entry_zip != zip_filter:
+                    continue
             estimate = self._estimate_price(
                 procedure_summary=procedure_summary,
                 provider_identifier=entry.npi or entry.name,
