@@ -28,7 +28,7 @@ def test_basic_llm_call():
     logger.info("=" * 80)
     
     # Initialize with API key
-    api_key = "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"
+    api_key = "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"
     llm = OpenRouterLLMClient(
         api_key=api_key,
         model="anthropic/claude-3.5-sonnet"  # Best model for reasoning
@@ -64,7 +64,7 @@ def test_schema_inference():
     logger.info("TEST 2: Schema Inference")
     logger.info("=" * 80)
     
-    api_key = "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"
+    api_key = "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"
     llm = OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
     
     # Sample hospital data with non-standard field names
@@ -136,7 +136,7 @@ def test_payer_normalization():
     logger.info("TEST 3: Payer Name Normalization")
     logger.info("=" * 80)
     
-    api_key = "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"
+    api_key = "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"
     llm = OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
     
     test_cases = [
@@ -177,7 +177,7 @@ def test_file_parsing_with_llm():
     logger.info("TEST 4: Complete File Parsing with LLM")
     logger.info("=" * 80)
     
-    api_key = "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"
+    api_key = "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"
     llm = OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
     
     # Initialize parser with real LLM
@@ -220,7 +220,7 @@ def test_file_discovery_with_llm():
     logger.info("TEST 5: File Discovery with LLM")
     logger.info("=" * 80)
     
-    api_key = "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"
+    api_key = "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"
     llm = OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
     
     # Initialize discovery agent with real LLM

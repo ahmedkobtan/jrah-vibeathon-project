@@ -21,6 +21,9 @@ class QueryUnderstandingAgent:
     using LLM + database search
     """
     
+    # Class-level cache for web search results (guarantees consistency)
+    _query_cache = {}
+    
     def __init__(self, llm_client, db_session: Session):
         self.llm = llm_client
         self.db = db_session
@@ -45,62 +48,42 @@ class QueryUnderstandingAgent:
         """
         MIN_MATCH_SCORE = 0.5
         
-        # Step 1: Run database search first
+        # Step 1: Try database first (most consistent)
         db_matches = self._database_search(user_query, limit)
         good_db_matches = [m for m in db_matches if m["match_score"] >= MIN_MATCH_SCORE]
         
-        # Step 2: Only run DuckDuckGo if:
-        # - Database has results (to cross-validate)
-        # - Query is specific (more than 1 word)
-        should_use_ddg = (
-            DUCKDUCKGO_AVAILABLE and 
-            (good_db_matches or len(user_query.split()) > 1)
-        )
-        
-        ddg_matches = []
-        if should_use_ddg:
-            ddg_matches = self._duckduckgo_search(user_query, limit)
-        
-        # Step 3: Determine strategy based on what we found
-        db_cpt_codes = {m["cpt_code"] for m in good_db_matches}
-        ddg_cpt_codes = {m["cpt_code"] for m in ddg_matches}
-        
-        # Case 1: Both have results → prefer CPT codes in BOTH
-        if db_cpt_codes and ddg_cpt_codes:
-            common_cpts = db_cpt_codes.intersection(ddg_cpt_codes)
-            
-            if common_cpts:
-                # Return procedures that appear in both sources (highest confidence)
-                results = []
-                for match in good_db_matches:
-                    if match["cpt_code"] in common_cpts:
-                        # Boost score for appearing in both sources
-                        match["match_score"] = min(1.0, match["match_score"] + 0.2)
-                        match["source"] = "database + duckduckgo"
-                        results.append(match)
-                
-                if results:
-                    results.sort(key=lambda x: x["match_score"], reverse=True)
-                    return results[:limit]
-            
-            # If no common codes, combine all results from both sources
-            combined = self._merge_results(good_db_matches, ddg_matches, limit)
-            combined.sort(key=lambda x: x["match_score"], reverse=True)
-            return combined[:limit]
-        
-        # Case 2: Only database has results
-        elif db_cpt_codes and not ddg_cpt_codes:
+        # Step 2: If database has results, return them (deterministic)
+        if good_db_matches:
             return good_db_matches[:limit]
         
-        # Case 3: Only DuckDuckGo has results
-        elif ddg_cpt_codes and not db_cpt_codes:
-            return ddg_matches[:limit]
+        # Step 3: Check cache for this query (ensures 100% consistency)
+        cache_key = f"{user_query.lower()}:{limit}"
+        if cache_key in self._query_cache:
+            print(f"Returning cached result for: {user_query}")
+            return self._query_cache[cache_key]
         
-        # Case 4: BOTH are empty → try Google search as final fallback
-        else:
-            print("Both database and DuckDuckGo returned no results, trying Google fallback...")
-            google_results = self._google_search(user_query, limit)
-            return google_results[:limit]
+        # Step 4: Only use web search if database truly has NOTHING and not in cache
+        # Sort results by CPT code for consistency
+        web_results = []
+        if DUCKDUCKGO_AVAILABLE:
+            web_results = self._duckduckgo_search(user_query, limit)
+        
+        if not web_results:
+            # Final fallback to Google
+            web_results = self._google_search(user_query, limit)
+        
+        if web_results:
+            # Sort by CPT code for consistent ordering
+            web_results.sort(key=lambda x: x["cpt_code"])
+            result = web_results[:limit]
+            # Cache result for future queries
+            self._query_cache[cache_key] = result
+            print(f"Caching new result for: {user_query}")
+            return result
+        
+        # No results found anywhere - cache empty result too
+        self._query_cache[cache_key] = []
+        return []
     
     def _database_search(self, query: str, limit: int) -> List[Dict]:
         """
@@ -251,38 +234,56 @@ If unsure, return fewer codes rather than guessing.
     
     def _duckduckgo_search(self, query: str, limit: int) -> List[Dict]:
         """
-        Use DuckDuckGo web search to find CPT codes (using new ddgs package).
+        Use DuckDuckGo web search to find CPT codes with consensus mechanism.
+        Searches multiple times and returns only codes that appear consistently.
         """
         try:
+            from collections import Counter
+            from ddgs import DDGS
+            
             # Search for CPT code information
             search_query = f"{query} CPT code medical procedure"
             
-            # Use new ddgs API
-            from ddgs import DDGS
+            # CONSENSUS MECHANISM: Search multiple times
+            NUM_SEARCHES = 3
+            all_cpt_codes = []
+            all_text_snippets = []
+            
+            for search_attempt in range(NUM_SEARCHES):
+                try:
+                    ddgs = DDGS()
+                    search_results = ddgs.text(search_query, max_results=10)
+                    
+                    if search_results:
+                        search_results = list(search_results)
+                    else:
+                        search_results = []
+                    
+                    # Extract CPT codes from this search
+                    for result in search_results:
+                        title = result.get("title", "")
+                        snippet = result.get("body", "")
+                        text = f"{title} {snippet}"
+                        
+                        if search_attempt == 0:  # Only save snippets from first search
+                            all_text_snippets.append(text)
+                        
+                        # Extract 5-digit codes
+                        potential_cpts = re.findall(r'\b(\d{5})\b', text)
+                        all_cpt_codes.extend(potential_cpts)
+                    
+                except Exception as e:
+                    print(f"DuckDuckGo search attempt {search_attempt + 1} failed: {e}")
+                    continue
+            
+            # Count frequency of each CPT code
+            cpt_counter = Counter(all_cpt_codes)
+            
+            # Only keep CPT codes that appeared at least TWICE (consensus)
+            MIN_CONSENSUS = 2
+            cpt_codes_found = {code for code, count in cpt_counter.items() if count >= MIN_CONSENSUS}
             
             results = []
-            ddgs = DDGS()
-            search_results = ddgs.text(search_query, max_results=10)
-            
-            if search_results:
-                search_results = list(search_results)
-            else:
-                search_results = []
-            
-            # Extract CPT codes from search results using regex
-            cpt_codes_found = set()
-            text_snippets = []
-            
-            for result in search_results:
-                title = result.get("title", "")
-                snippet = result.get("body", "")
-                text = f"{title} {snippet}"
-                text_snippets.append(text)
-                
-                # Extract 5-digit codes that might be CPT codes
-                potential_cpts = re.findall(r'\b(\d{5})\b', text)
-                for code in potential_cpts:
-                    cpt_codes_found.add(code)
             
             # Use LLM to validate and rank the found CPT codes (if any)
             if cpt_codes_found:
@@ -333,31 +334,43 @@ If unsure, return fewer codes rather than guessing.
     
     def _google_search(self, query: str, limit: int) -> List[Dict]:
         """
-        Use Google search to find CPT codes (fallback when DuckDuckGo fails).
+        Use Google search with consensus mechanism to find CPT codes.
+        Searches multiple times and returns only codes that appear consistently.
         """
         try:
+            from collections import Counter
             from googlesearch import search
             import time
             
             search_query = f"{query} CPT code medical procedure"
             
-            # Collect search results
-            urls_and_snippets = []
-            for url in search(search_query, num_results=10, lang='en'):
-                urls_and_snippets.append(url)
-                time.sleep(0.1)  # Be polite to avoid blocks
-            
-            # Extract CPT codes from URLs and perform targeted searches
-            cpt_codes_found = set()
+            # CONSENSUS MECHANISM: Search multiple times
+            NUM_SEARCHES = 2  # Google is slower, use fewer searches
+            all_cpt_codes = []
             text_snippets = []
             
-            # Search each result URL text for CPT codes
-            for url in urls_and_snippets[:10]:
-                text_snippets.append(url)
-                # Extract 5-digit codes from URLs
-                potential_cpts = re.findall(r'\b(\d{5})\b', url)
-                for code in potential_cpts:
-                    cpt_codes_found.add(code)
+            for search_attempt in range(NUM_SEARCHES):
+                try:
+                    # Collect search results
+                    for url in search(search_query, num_results=10, lang='en'):
+                        if search_attempt == 0:  # Only save snippets from first search
+                            text_snippets.append(url)
+                        
+                        # Extract 5-digit codes from URLs
+                        potential_cpts = re.findall(r'\b(\d{5})\b', url)
+                        all_cpt_codes.extend(potential_cpts)
+                        time.sleep(0.1)  # Be polite
+                        
+                except Exception as e:
+                    print(f"Google search attempt {search_attempt + 1} failed: {e}")
+                    continue
+            
+            # Count frequency of each CPT code
+            cpt_counter = Counter(all_cpt_codes)
+            
+            # Only keep CPT codes that appeared at least TWICE (consensus)
+            MIN_CONSENSUS = 2
+            cpt_codes_found = {code for code, count in cpt_counter.items() if count >= MIN_CONSENSUS}
             
             # If no codes found in URLs, do additional web searches
             if not cpt_codes_found:

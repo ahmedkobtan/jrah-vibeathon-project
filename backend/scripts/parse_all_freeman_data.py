@@ -42,7 +42,7 @@ def main():
     db.create_tables()
     
     # Initialize LLM
-    api_key = "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"
+    api_key = "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"
     llm = OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
     
     # Initialize agents
