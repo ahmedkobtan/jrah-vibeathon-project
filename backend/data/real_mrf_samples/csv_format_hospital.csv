@@ -1,0 +1,10 @@
+hospital_name,facility_npi,cpt_code,procedure_description,payer_code,payer_name,plan_type,negotiated_rate,gross_charge,cash_price
+"Sample Medical Center",9876543210,45378,"Colonoscopy diagnostic",BCBS001,"Blue Cross Blue Shield of Missouri",PPO,1250.50,3500.00,1800.00
+"Sample Medical Center",9876543210,45378,"Colonoscopy diagnostic",MCARE,"Medicare Traditional",N/A,350.00,3500.00,1800.00
+"Sample Medical Center",9876543210,45378,"Colonoscopy diagnostic",UHC001,"UnitedHealthcare",Choice Plus,1320.00,3500.00,1800.00
+"Sample Medical Center",9876543210,36415,"Routine venipuncture",BCBS001,"Blue Cross Blue Shield of Missouri",PPO,15.00,45.00,20.00
+"Sample Medical Center",9876543210,36415,"Routine venipuncture",MCARE,"Medicare Traditional",N/A,3.00,45.00,20.00
+"Sample Medical Center",9876543210,80053,"Comprehensive metabolic panel",BCBS001,"Blue Cross Blue Shield of Missouri",PPO,45.00,120.00,60.00
+"Sample Medical Center",9876543210,80053,"Comprehensive metabolic panel",MCARE,"Medicare Traditional",N/A,14.00,120.00,60.00
+"Sample Medical Center",9876543210,85025,"Complete blood count (CBC)",BCBS001,"Blue Cross Blue Shield of Missouri",PPO,35.00,95.00,50.00
+"Sample Medical Center",9876543210,85025,"Complete blood count (CBC)",MCARE,"Medicare Traditional",N/A,11.00,95.00,50.00

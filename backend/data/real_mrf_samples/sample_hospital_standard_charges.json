@@ -1,0 +1,94 @@
+{
+  "hospital_name": "Sample Community Hospital",
+  "last_updated": "2024-01-01",
+  "version": "1.0",
+  "standard_charge_information": [
+    {
+      "description": "MRI - BRAIN W/O CONTRAST",
+      "code": [
+        {
+          "type": "CPT",
+          "code": "70553"
+        }
+      ],
+      "standard_charges": [
+        {
+          "payer_name": "Blue Cross Blue Shield",
+          "plan_name": "PPO",
+          "negotiated_dollar_amount": "1,250.00",
+          "negotiated_percentage": null
+        },
+        {
+          "payer_name": "Medicare",
+          "plan_name": "Traditional",
+          "negotiated_dollar_amount": "423.00",
+          "negotiated_percentage": null
+        },
+        {
+          "payer_name": "UnitedHealthcare",
+          "plan_name": "Choice Plus",
+          "negotiated_dollar_amount": "1,350.00",
+          "negotiated_percentage": null
+        }
+      ],
+      "gross_charge": "3,500.00",
+      "discounted_cash_price": "1,800.00"
+    },
+    {
+      "description": "CT HEAD/BRAIN W/O DYE",
+      "code": [
+        {
+          "type": "CPT",
+          "code": "70450"
+        }
+      ],
+      "standard_charges": [
+        {
+          "payer_name": "Blue Cross Blue Shield",
+          "plan_name": "PPO",
+          "negotiated_dollar_amount": "650.00",
+          "negotiated_percentage": null
+        },
+        {
+          "payer_name": "Medicare",
+          "plan_name": "Traditional",
+          "negotiated_dollar_amount": "234.00",
+          "negotiated_percentage": null
+        }
+      ],
+      "gross_charge": "2,100.00",
+      "discounted_cash_price": "950.00"
+    },
+    {
+      "description": "MRI LOWER EXTREMITY W/O DYE (Knee)",
+      "code": [
+        {
+          "type": "CPT",
+          "code": "73721"
+        }
+      ],
+      "standard_charges": [
+        {
+          "payer_name": "Blue Cross Blue Shield",
+          "plan_name": "PPO",
+          "negotiated_dollar_amount": "825.00",
+          "negotiated_percentage": null
+        },
+        {
+          "payer_name": "Medicare",
+          "plan_name": "Traditional",
+          "negotiated_dollar_amount": "275.00",
+          "negotiated_percentage": null
+        },
+        {
+          "payer_name": "Aetna",
+          "plan_name": "HMO",
+          "negotiated_dollar_amount": "780.00",
+          "negotiated_percentage": null
+        }
+      ],
+      "gross_charge": "2,500.00",
+      "discounted_cash_price": "1,200.00"
+    }
+  ]
+}
