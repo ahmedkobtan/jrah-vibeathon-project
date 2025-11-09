@@ -53,14 +53,35 @@ export default function App(): JSX.Element {
   const [providerLimit, setProviderLimit] = useState("20");
   const [error, setError] = useState<string | null>(null);
 
+  // Demo procedures to always show at the top
+  const demoProcedures: ProcedureSummary[] = [
+    {
+      cpt_code: "29881",
+      description: "Knee Surgery (Arthroscopy)",
+      category: "Orthopedic Surgery",
+      medicare_rate: 4500,
+    },
+    {
+      cpt_code: "45378",
+      description: "Colonoscopy",
+      category: "Gastroenterology",
+      medicare_rate: 3200,
+    },
+  ];
+
   useEffect(() => {
     const loadProcedures = async () => {
       try {
         setLoadingProcedures(true);
         const data = await fetchProcedures();
-        setProcedures(data);
-        if (data.length > 0) {
-          setSelectedCpt((current) => current || data[0].cpt_code);
+        // Put demo procedures first, then merge with API results (removing duplicates)
+        const otherProcedures = data.filter(
+          (p) => !demoProcedures.find((demo) => demo.cpt_code === p.cpt_code)
+        );
+        const allProcedures = [...demoProcedures, ...otherProcedures];
+        setProcedures(allProcedures);
+        if (allProcedures.length > 0) {
+          setSelectedCpt((current) => current || allProcedures[0].cpt_code);
         }
       } catch (err) {
         console.error(err);
@@ -84,9 +105,31 @@ export default function App(): JSX.Element {
     try {
       setLoadingProcedures(true);
       const data = await fetchProcedures(procedureQuery);
-      setProcedures(data);
-      if (data.length > 0) {
-        setSelectedCpt(data[0].cpt_code);
+      // If there's a search query, show matching results prioritized
+      if (procedureQuery.trim()) {
+        const matchingDemos = demoProcedures.filter(
+          (demo) =>
+            demo.cpt_code.toLowerCase().includes(procedureQuery.toLowerCase()) ||
+            demo.description.toLowerCase().includes(procedureQuery.toLowerCase())
+        );
+        const otherResults = data.filter(
+          (p) => !demoProcedures.find((demo) => demo.cpt_code === p.cpt_code)
+        );
+        const allProcedures = [...matchingDemos, ...otherResults];
+        setProcedures(allProcedures);
+        if (allProcedures.length > 0) {
+          setSelectedCpt(allProcedures[0].cpt_code);
+        }
+      } else {
+        // No search query - use default behavior with demos at top
+        const otherProcedures = data.filter(
+          (p) => !demoProcedures.find((demo) => demo.cpt_code === p.cpt_code)
+        );
+        const allProcedures = [...demoProcedures, ...otherProcedures];
+        setProcedures(allProcedures);
+        if (allProcedures.length > 0) {
+          setSelectedCpt(allProcedures[0].cpt_code);
+        }
       }
     } catch (err) {
       console.error(err);
