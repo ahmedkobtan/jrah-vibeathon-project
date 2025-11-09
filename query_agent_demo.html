@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Understanding Agent Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        .input-section label {
+            display: block;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #queryInput {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #queryInput:focus {
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .examples {
+            margin-top: 15px;
+        }
+        
+        .examples-title {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .example-queries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .example-btn {
+            padding: 8px 15px;
+            font-size: 0.85em;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .results-section.show {
+            display: block;
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .result-header h3 {
+            color: #333;
+            font-size: 1.3em;
+        }
+        
+        .confidence-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .confidence-high {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .confidence-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .confidence-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .matched-procedures {
+            margin-top: 20px;
+        }
+        
+        .matched-procedures h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .procedure-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .procedure-code {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        .procedure-description {
+            color: #555;
+            margin: 5px 0;
+        }
+        
+        .procedure-score {
+            font-size: 0.85em;
+            color: #28a745;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #721c24;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-healthy {
+            background: #28a745;
+        }
+        
+        .status-error {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Query Understanding Agent</h1>
+            <p>Transform natural language queries into structured healthcare cost data</p>
+        </div>
+        
+        <div class="main-card">
+            <div class="input-section">
+                <label for="queryInput">Enter your healthcare cost query:</label>
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="queryInput" 
+                        placeholder="e.g., How much for a knee MRI with Blue Cross PPO in Joplin?"
+                    >
+                    <button class="btn btn-primary" id="parseBtn">Parse Query</button>
+                </div>
+                
+                <div class="examples">
+                    <div class="examples-title">Try these examples:</div>
+                    <div class="example-queries">
+                        <button class="example-btn" data-query="How much for a knee MRI with Blue Cross PPO in Joplin?">Knee MRI with BCBS</button>
+                        <button class="example-btn" data-query="CT scan cost with Medicare">CT scan with Medicare</button>
+                        <button class="example-btn" data-query="Find cheapest ultrasound near 64801">Cheapest ultrasound</button>
+                        <button class="example-btn" data-query="I need an X-ray for my chest">Chest X-ray</button>
+                        <button class="example-btn" data-query="MRI of the brain">Brain MRI</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing your query with LLM agent...</p>
+            </div>
+            
+            <div id="error" class="error" style="display: none;"></div>
+            
+            <div id="results" class="results-section">
+                <div class="result-card">
+                    <div class="result-header">
+                        <h3>Query Analysis Results</h3>
+                        <span id="confidenceBadge" class="confidence-badge"></span>
+                    </div>
+                    
+                    <div class="result-grid">
+                        <div class="info-box">
+                            <div class="info-label">Procedure</div>
+                            <div class="info-value" id="procedureName">-</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Insurance</div>
+                            <div class="info-value" id="insurance">-</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Plan Type</div>
+                            <div class="info-value" id="planType">-</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Location</div>
+                            <div class="info-value" id="location">-</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Intent</div>
+                            <div class="info-value" id="intent">-</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">CPT Codes</div>
+                            <div class="info-value" id="cptCodes">-</div>
+                        </div>
+                    </div>
+                    
+                    <div id="matchedProcedures" class="matched-procedures">
+                        <h4>Matched Procedures from Database:</h4>
+                        <div id="proceduresList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        const elements = {
+            queryInput: document.getElementById('queryInput'),
+            parseBtn: document.getElementById('parseBtn'),
+            loading: document.getElementById('loading'),
+            error: document.getElementById('error'),
+            results: document.getElementById('results'),
+            confidenceBadge: document.getElementById('confidenceBadge'),
+            procedureName: document.getElementById('procedureName'),
+            insurance: document.getElementById('insurance'),
+            planType: document.getElementById('planType'),
+            location: document.getElementById('location'),
+            intent: document.getElementById('intent'),
+            cptCodes: document.getElementById('cptCodes'),
+            proceduresList: document.getElementById('proceduresList')
+        };
+        
+        // Example button handlers
+        document.querySelectorAll('.example-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                elements.queryInput.value = btn.dataset.query;
+                parseQuery();
+            });
+        });
+        
+        // Parse button handler
+        elements.parseBtn.addEventListener('click', parseQuery);
+        
+        // Enter key handler
+        elements.queryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                parseQuery();
+            }
+        });
+        
+        async function parseQuery() {
+            const query = elements.queryInput.value.trim();
+            
+            if (!query) {
+                showError('Please enter a query');
+                return;
+            }
+            
+            // Show loading
+            elements.loading.style.display = 'block';
+            elements.error.style.display = 'none';
+            elements.results.classList.remove('show');
+            elements.parseBtn.disabled = true;
+            
+            try {
+                // Call the new /api/query/prices endpoint to get actual pricing data
+                const response = await fetch(`${API_BASE}/api/query/prices`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Failed to parse query: ${error.message}. Make sure the API server is running on port 8000.`);
+            } finally {
+                elements.loading.style.display = 'none';
+                elements.parseBtn.disabled = false;
+            }
+        }
+        
+        function displayResults(data) {
+            // Extract query_understanding and prices from the response
+            const queryData = data.query_understanding || data;
+            const prices = data.prices || [];
+            
+            // Update confidence badge
+            const confidence = queryData.confidence;
+            elements.confidenceBadge.textContent = `${(confidence * 100).toFixed(0)}% Confidence`;
+            elements.confidenceBadge.className = 'confidence-badge ' + 
+                (confidence >= 0.8 ? 'confidence-high' : 
+                 confidence >= 0.5 ? 'confidence-medium' : 'confidence-low');
+            
+            // Update fields
+            elements.procedureName.textContent = queryData.procedure_name || 'Not detected';
+            elements.insurance.textContent = queryData.insurance_carrier || 'Not mentioned';
+            elements.planType.textContent = queryData.plan_type || 'Not mentioned';
+            elements.location.textContent = queryData.location || 'Not mentioned';
+            elements.intent.textContent = formatIntent(queryData.intent);
+            elements.cptCodes.textContent = queryData.cpt_codes.length > 0 ? 
+                queryData.cpt_codes.join(', ') : 'None found';
+            
+            // Display pricing results from database
+            if (prices && prices.length > 0) {
+                elements.proceduresList.innerHTML = `
+                    <h4 style="margin-bottom: 15px; color: #28a745;">✅ Found ${prices.length} Pricing Records from Database</h4>
+                    ${prices.map(price => `
+                        <div class="procedure-item" style="border-left: 4px solid #28a745;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                                <div>
+                                    <div class="procedure-code">${price.cpt_code}</div>
+                                    <div class="procedure-description">${price.procedure_description}</div>
+                                    <div style="font-size: 0.9em; color: #666; margin-top: 5px;">
+                                        <strong>Provider:</strong> ${price.provider_name}
+                                    </div>
+                                    ${price.payer_name ? `<div style="font-size: 0.9em; color: #666;">
+                                        <strong>Payer:</strong> ${price.payer_name}
+                                    </div>` : ''}
+                                </div>
+                                <div style="text-align: right;">
+                                    ${price.negotiated_rate ? `
+                                        <div style="font-size: 1.3em; font-weight: 700; color: #28a745;">
+                                            $${price.negotiated_rate.toFixed(2)}
+                                        </div>
+                                        <div style="font-size: 0.85em; color: #666;">Negotiated</div>
+                                    ` : ''}
+                                    ${price.standard_charge ? `
+                                        <div style="font-size: 0.9em; color: #999; margin-top: 5px;">
+                                            List: $${price.standard_charge.toFixed(2)}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } else if (queryData.matched_procedures && queryData.matched_procedures.length > 0) {
+                // Show matched procedures if no prices found
+                elements.proceduresList.innerHTML = `
+                    <h4>Matched Procedures (No Pricing Data Available):</h4>
+                    ${queryData.matched_procedures.map(proc => `
+                        <div class="procedure-item">
+                            <div class="procedure-code">${proc.cpt_code}</div>
+                            <div class="procedure-description">${proc.description}</div>
+                            <div class="procedure-score">Match Score: ${(proc.match_score * 100).toFixed(0)}%</div>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                elements.proceduresList.innerHTML = '<p style="color: #666;">No procedures or pricing data found.</p>';
+            }
+            
+            // Show results
+            elements.results.classList.add('show');
+        }
+        
+        function formatIntent(intent) {
+            const intentMap = {
+                'cost_estimate': 'Cost Estimate',
+                'compare_providers': 'Compare Providers',
+                'find_cheapest': 'Find Cheapest Option'
+            };
+            return intentMap[intent] || intent;
+        }
+        
+        function showError(message) {
+            elements.error.textContent = message;
+            elements.error.style.display = 'block';
+            setTimeout(() => {
+                elements.error.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Check API health on load
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                console.log('API Health:', data);
+            } catch (error) {
+                console.warn('API not available yet:', error.message);
+            }
+        }
+        
+        checkHealth();
+    </script>
+</body>
+</html>

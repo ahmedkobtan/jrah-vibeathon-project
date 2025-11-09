@@ -151,3 +151,7 @@ class OpenRouterLLMClient:
         except Exception as e:
             logger.error(f"Failed to fetch models: {e}")
             return []
+
+
+# Alias for backwards compatibility
+OpenRouterLLM = OpenRouterLLMClient

@@ -171,6 +171,6 @@ __Ready for__:
 - Scaling to thousands of hospitals
 - Real-world usage
 
-__API Key__: OpenRouter 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\
+__API Key__: OpenRouter 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\
 __Model__: Claude 3.5 Sonnet\
 __Status__: ✅ FULLY OPERATIONAL

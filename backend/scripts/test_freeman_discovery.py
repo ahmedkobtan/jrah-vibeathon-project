@@ -60,7 +60,7 @@ def test_url_discovery_from_freeman_site():
     logger.info("=" * 80)
     
     # Initialize with LLM for intelligent discovery
-    api_key = "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"
+    api_key = "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"
     llm = OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
     agent = FileDiscoveryAgent(llm_client=llm)
     

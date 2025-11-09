@@ -81,3 +81,7 @@ class MockLLMClient:
                 if word and word[0].isupper() and len(word) > 3:
                     return word
         return "Unknown Carrier"
+
+
+# Alias for backwards compatibility
+MockLLM = MockLLMClient
