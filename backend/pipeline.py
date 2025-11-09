@@ -92,7 +92,7 @@ def main():
     sample_file = Path(__file__).parent / 'data' / 'seeds' / 'sample_hospital_file.csv'
     
     # Initialize parser with OpenRouter LLM
-    api_key = "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"
+    api_key = "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"
     llm_client = OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
     parser = AdaptiveParsingAgent(llm_client=llm_client)
     

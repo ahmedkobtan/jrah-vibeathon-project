@@ -31,7 +31,7 @@ def test_db():
 @pytest.fixture
 def mock_llm():
     """Create OpenRouter LLM client with API key"""
-    api_key = "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"
+    api_key = "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"
     return OpenRouterLLMClient(api_key=api_key, model="anthropic/claude-3.5-sonnet")
 
 
