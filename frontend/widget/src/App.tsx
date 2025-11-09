@@ -2,8 +2,10 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   PriceEstimateResponse,
   ProcedureSummary,
+  ProviderSummary,
   fetchPriceEstimates,
   fetchProcedures,
+  lookupProviders,
 } from "./api";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -44,6 +46,11 @@ export default function App(): JSX.Element {
   const [pricing, setPricing] = useState<PriceEstimateResponse | null>(null);
   const [loadingProcedures, setLoadingProcedures] = useState(false);
   const [loadingPricing, setLoadingPricing] = useState(false);
+  const [loadingProviderLookup, setLoadingProviderLookup] = useState(false);
+  const [providers, setProviders] = useState<ProviderSummary[]>([]);
+  const [providerCity, setProviderCity] = useState("Joplin");
+  const [providerState, setProviderState] = useState("MO");
+  const [providerLimit, setProviderLimit] = useState("20");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -127,6 +134,40 @@ export default function App(): JSX.Element {
     }
   };
 
+  const handleProviderLookup = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+
+    const city = providerCity.trim();
+    const state = providerState.trim().toUpperCase();
+    const limitValue = Number(providerLimit);
+
+    if (!city || state.length !== 2) {
+      setError("Enter city and two-letter state to search providers.");
+      return;
+    }
+
+    if (!Number.isInteger(limitValue) || limitValue < 1 || limitValue > 50) {
+      setError("Provider limit must be an integer between 1 and 50.");
+      return;
+    }
+
+    try {
+      setLoadingProviderLookup(true);
+      const results = await lookupProviders(city, state, limitValue);
+      setProviders(results);
+    } catch (err) {
+      console.error(err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to look up providers right now.",
+      );
+    } finally {
+      setLoadingProviderLookup(false);
+    }
+  };
+
   const selectedProcedure = useMemo(
     () => procedures.find((proc) => proc.cpt_code === selectedCpt),
     [procedures, selectedCpt],
@@ -174,6 +215,52 @@ export default function App(): JSX.Element {
             disabled={loadingProcedures}
           >
             {loadingProcedures ? "Searching…" : "Search Procedures"}
+          </button>
+        </div>
+      </form>
+
+      <form className="form-grid" onSubmit={handleProviderLookup}>
+        <div className="form-group">
+          <label htmlFor="provider-city">Provider city</label>
+          <input
+            id="provider-city"
+            type="text"
+            placeholder="City"
+            value={providerCity}
+            onChange={(event) => setProviderCity(event.target.value)}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="provider-state">Provider state</label>
+          <input
+            id="provider-state"
+            type="text"
+            placeholder="MO"
+            maxLength={2}
+            value={providerState}
+            onChange={(event) =>
+              setProviderState(event.target.value.toUpperCase())
+            }
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="provider-limit">Result limit</label>
+          <input
+            id="provider-limit"
+            type="number"
+            min={1}
+            max={50}
+            value={providerLimit}
+            onChange={(event) => setProviderLimit(event.target.value)}
+          />
+        </div>
+        <div className="form-actions">
+          <button
+            type="submit"
+            className="primary"
+            disabled={loadingProviderLookup}
+          >
+            {loadingProviderLookup ? "Looking up…" : "Lookup Providers"}
           </button>
         </div>
       </form>
@@ -313,6 +400,38 @@ export default function App(): JSX.Element {
                         ? new Date(result.price.last_updated).toLocaleDateString()
                         : "—"}
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {providers.length > 0 && (
+        <section className="results">
+          <h2>Providers Found</h2>
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>NPI</th>
+                  <th>Location</th>
+                  <th>Phone</th>
+                </tr>
+              </thead>
+              <tbody>
+                {providers.map((provider) => (
+                  <tr key={`${provider.npi ?? provider.name}`}>
+                    <td>{provider.name}</td>
+                    <td>{provider.npi ?? "—"}</td>
+                    <td>
+                      {[provider.city, provider.state, provider.zip]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </td>
+                    <td>{provider.phone ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>

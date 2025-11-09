@@ -1,5 +1,5 @@
 export interface ProviderSummary {
-  id: number;
+  id?: number | null;
   name: string;
   npi?: string | null;
   city?: string | null;
@@ -111,5 +111,19 @@ export async function fetchPriceEstimates(
 
   const response = await fetch(url);
   return handleResponse<PriceEstimateResponse>(response);
+}
+
+export async function lookupProviders(
+  city: string,
+  state: string,
+  limit = 20,
+): Promise<ProviderSummary[]> {
+  const url = new URL(`${API_BASE_URL}/providers/lookup`);
+  url.searchParams.set("city", city);
+  url.searchParams.set("state", state);
+  url.searchParams.set("limit", String(limit));
+
+  const response = await fetch(url);
+  return handleResponse<ProviderSummary[]>(response);
 }
 

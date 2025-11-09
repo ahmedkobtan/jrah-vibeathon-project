@@ -12,7 +12,7 @@ class ProviderSummary(BaseModel):
     Summary information about a provider suitable for API responses.
     """
 
-    id: int
+    id: Optional[int] = None
     name: str
     npi: Optional[str] = None
     address: Optional[str] = None
