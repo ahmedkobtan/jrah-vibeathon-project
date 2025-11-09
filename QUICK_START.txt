@@ -1,0 +1,121 @@
+┌─────────────────────────────────────────────────────────────────────┐
+│                  GOOGLE SEARCH TESTING QUICK START                  │
+└─────────────────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  STEP 1: GET CREDENTIALS (One-time setup, 5 minutes)             ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+📍 Get API Key:
+   → https://console.developers.google.com/apis/credentials
+   → Create Credentials → API Key
+   → Enable "Custom Search API"
+   → Copy key: AIzaSyAbc123...
+
+📍 Get Search Engine ID:
+   → https://programmablesearchengine.google.com/
+   → Click "Add" or "Get Started"
+   → Name: Healthcare Pricing Search
+   → Enable: "Search the entire web"
+   → Copy ID: abc123def456...
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  STEP 2: RUN TEST SCRIPT (See it work immediately!)              ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+$ python3 quick_test_google_search.py
+
+   → Enter API Key: [paste your key]
+   → Enter CSE ID: [paste your ID]
+   → Enter CPT code: 99213 [or leave default]
+   → Enter city: Joplin [or leave default]
+   → Enter state: MO [or leave default]
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  WHAT YOU'LL SEE                                                  ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+🔍 Searching for: CPT 99213 in Joplin, MO
+⏳ Please wait... (this may take a few seconds)
+
+📊 SEARCH RESULTS: Found 8 results
+──────────────────────────────────────────
+🔹 Result 1: Office Visit Cost...
+   💰 Prices found: ['$145.00', '$180.50']
+
+🔹 Result 2: CPT 99213 Medicare...
+   💰 Prices found: ['$98.00']
+...
+
+📈 AGGREGATED PRICING ESTIMATE
+──────────────────────────────────────────
+✅ SUCCESS! Web-based pricing estimate:
+
+   💵 RECOMMENDED: $145.50
+   📊 Average: $152.30
+   📉 Min: $98.00
+   📈 Max: $215.00
+   🎯 Confidence: 55%
+
+🎉 Google Search fallback is working!
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  STEP 3: INTEGRATE WITH BACKEND (Optional)                        ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+Add to backend/.env:
+
+GOOGLE_SEARCH_API_KEY=your_key_here
+GOOGLE_SEARCH_CSE_ID=your_cse_id_here
+
+Restart backend:
+$ cd backend
+$ uvicorn app.main:app --reload
+
+Test API endpoint:
+$ curl "http://localhost:8000/api/pricing/estimates?cpt_code=12345&provider_city=Joplin&provider_state=MO"
+
+Look for: "data_source": "Google Search (n=7 sources)"
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  TROUBLESHOOTING                                                  ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+❌ "Invalid API key"
+   → Check key is correct
+   → Enable "Custom Search API" in Google Cloud Console
+
+❌ "No results found"
+   → Try common CPT codes: 99213, 99214, 80053
+   → Try bigger cities: "New York, NY"
+   → Check CSE has "Search entire web" enabled
+
+❌ "Too many requests"
+   → Free quota: 100 searches/day
+   → Wait 24 hours or upgrade
+
+❌ "Module not found"
+   → cd backend && pip install -r requirements.txt
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  USEFUL LINKS                                                     ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+📖 Full documentation: GOOGLE_SEARCH_INTEGRATION.md
+📖 Testing guide: TESTING_GOOGLE_SEARCH.md
+📖 Feature summary: GOOGLE_SEARCH_FEATURE_SUMMARY.md
+
+🔧 Google Cloud Console:
+   https://console.developers.google.com/
+
+🔧 Custom Search Engine:
+   https://programmablesearchengine.google.com/
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  THAT'S IT!                                                       ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+Run the test script to see Google Search working with real pricing data!
+
+$ python3 quick_test_google_search.py
+

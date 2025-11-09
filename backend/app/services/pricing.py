@@ -3,7 +3,7 @@ Pricing service containing business logic for cost estimates.
 """
 
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, Union
 import hashlib
 
 from sqlalchemy import func
@@ -11,6 +11,8 @@ from sqlalchemy.orm import Session
 
 from database import PriceTransparency, Procedure, Provider
 from .npi_client import NpiClient
+from .duckduckgo_search_client import DuckDuckGoSearchClient
+from .google_search_client import GoogleSearchClient
 from app.schemas import (
     PriceDetail,
     PriceEstimateItem,
@@ -27,9 +29,17 @@ class PricingService:
     Encapsulates pricing lookup logic.
     """
 
-    def __init__(self, session: Session, npi_client: NpiClient | None = None):
+    def __init__(
+        self,
+        session: Session,
+        npi_client: NpiClient | None = None,
+        search_client: Union[DuckDuckGoSearchClient, GoogleSearchClient, None] = None,
+        google_search_client: GoogleSearchClient | None = None,  # Legacy parameter
+    ):
         self.session = session
         self.npi_client = npi_client or NpiClient()
+        # Support both new generic search_client and legacy google_search_client
+        self.search_client = search_client or google_search_client
 
     def fetch_price_estimates(
         self,
@@ -135,6 +145,16 @@ class PricingService:
             zip_filter=zip_code,
         )
 
+        # If NPI fallback didn't yield results, try Web Search (DuckDuckGo or Google)
+        if not fallback_results and self.search_client:
+            fallback_results = self._fallback_with_web_search(
+                procedure_summary=procedure_summary,
+                cpt_code=cpt_code,
+                payer_name=payer_name,
+                provider_city=provider_city,
+                provider_state=provider_state,
+            )
+
         rates = [
             item.price.negotiated_rate
             for item in fallback_results
@@ -226,16 +246,14 @@ class PricingService:
 
         items: list[PriceEstimateItem] = []
         for entry in lookup_results:
-            # Apply state filter if provided
+            # Apply state filter if provided (redundant but keeps consistency)
             if state_filter and entry.address.state != state_filter.upper():
                 continue
             
-            # Apply ZIP filter if provided
-            if zip_filter and entry.address.postal_code:
-                # Extract first 5 digits for comparison
-                entry_zip = entry.address.postal_code.split('-')[0]
-                if entry_zip != zip_filter:
-                    continue
+            # Don't apply ZIP filter when using NPI fallback with city specified.
+            # A city typically has multiple ZIP codes, and exact ZIP matching
+            # is too restrictive. The provider_city parameter is specific enough.
+            
             estimate = self._estimate_price(
                 procedure_summary=procedure_summary,
                 provider_identifier=entry.npi or entry.name,
@@ -325,4 +343,99 @@ class PricingService:
             "max_rate": max_rate,
             "confidence": confidence,
         }
+
+    def _fallback_with_web_search(
+        self,
+        *,
+        procedure_summary: ProcedureSummary,
+        cpt_code: str,
+        payer_name: Optional[str],
+        provider_city: Optional[str],
+        provider_state: Optional[str],
+    ) -> list[PriceEstimateItem]:
+        """
+        Use web search (DuckDuckGo or Google) to find pricing information for a CPT code.
+        
+        This is the last-resort fallback when:
+        - No database records exist
+        - NPI fallback didn't produce results
+        - Web search client is available (DuckDuckGo preferred, Google as alternative)
+        """
+        if not self.search_client:
+            return []
+        
+        # Determine search engine name for display
+        search_engine = "DuckDuckGo" if isinstance(self.search_client, DuckDuckGoSearchClient) else "Google Search"
+        
+        try:
+            # Search for pricing information (same interface for both clients)
+            search_results = self.search_client.search_cpt_pricing(
+                cpt_code=cpt_code,
+                location=provider_city,
+                state=provider_state,
+                num_results=10,
+            )
+            
+            if not search_results:
+                return []
+            
+            # Aggregate pricing data from search results
+            aggregated = self.search_client.aggregate_pricing_estimate(
+                search_results
+            )
+            
+            # If we got useful pricing data, create a single estimate item
+            if aggregated["average"] is not None:
+                # Use the median as the primary estimate (more robust than average)
+                primary_estimate = aggregated["median"] or aggregated["average"]
+                
+                location_str = f"{provider_city}, {provider_state}" if provider_city and provider_state else provider_state or "Unknown"
+                
+                # Create a synthetic provider summary for the search-based estimate
+                provider_summary = ProviderSummary(
+                    id=None,
+                    npi=None,
+                    name=f"Regional Average ({location_str})",
+                    address="Web-sourced estimate",
+                    city=provider_city or "",
+                    state=provider_state or "",
+                    zip="",
+                    phone=None,
+                    website=None,
+                )
+                
+                # Create the price detail
+                price_detail = PriceDetail(
+                    id=None,
+                    payer_name=payer_name or "Market Average",
+                    negotiated_rate=primary_estimate,
+                    min_negotiated_rate=aggregated["min"],
+                    max_negotiated_rate=aggregated["max"],
+                    standard_charge=aggregated["max"],  # Use max as standard charge
+                    cash_price=primary_estimate * 0.8 if primary_estimate else None,  # Estimate cash at 80% of negotiated
+                    in_network=True,
+                    data_source=f"{search_engine} (n={len(search_results)} sources)",
+                    confidence_score=aggregated["confidence"],
+                    last_updated=date.today(),
+                    created_at=datetime.utcnow(),
+                )
+                
+                return [
+                    PriceEstimateItem(
+                        provider=provider_summary,
+                        procedure=procedure_summary,
+                        price=price_detail,
+                    )
+                ]
+                
+        except Exception:  # pragma: no cover - external API failure
+            # Silently fail and return empty list if search fails
+            pass
+        
+        return []
+    
+    # Keep old method name for backward compatibility
+    def _fallback_with_google_search(self, **kwargs):
+        """Deprecated: Use _fallback_with_web_search instead."""
+        return self._fallback_with_web_search(**kwargs)
 
