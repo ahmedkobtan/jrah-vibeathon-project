@@ -36,44 +36,65 @@ class QueryUnderstandingAgent:
         Returns:
             List of dicts with cpt_code, description, match_score
         """
+        # Minimum match score to be considered a good match
+        MIN_MATCH_SCORE = 0.5
+        
         # Step 1: Database fuzzy search (fast, most common case)
         db_matches = self._database_search(user_query, limit)
         
-        if db_matches and len(db_matches) >= 3:
+        # Filter out low-quality matches
+        good_db_matches = [m for m in db_matches if m["match_score"] >= MIN_MATCH_SCORE]
+        
+        if good_db_matches and len(good_db_matches) >= 2:
             # Good matches found, return them
-            return db_matches[:limit]
+            return good_db_matches[:limit]
         
         # Step 2: LLM-enhanced search for better understanding
         llm_enhanced = self._llm_enhanced_search(user_query, limit)
         
-        # Combine and deduplicate
-        combined = self._merge_results(db_matches, llm_enhanced, limit)
+        # Combine and deduplicate, keeping only good matches
+        combined = self._merge_results(good_db_matches, llm_enhanced, limit)
         
-        # Step 3: If still no good results, try web search as fallback
-        if len(combined) < 2 and DUCKDUCKGO_AVAILABLE:
+        # Filter combined results
+        good_combined = [m for m in combined if m["match_score"] >= MIN_MATCH_SCORE]
+        
+        # Step 3: Only use web search if really no good matches found
+        if len(good_combined) == 0 and DUCKDUCKGO_AVAILABLE:
             web_results = self._web_search_fallback(user_query, limit)
-            combined = self._merge_results(combined, web_results, limit)
+            combined = self._merge_results(good_combined, web_results, limit)
+            return combined[:limit]
         
-        return combined[:limit]
+        return good_combined[:limit]
     
     def _database_search(self, query: str, limit: int) -> List[Dict]:
-        """Fast database fuzzy text search"""
-        search_term = f"%{query}%"
+        """
+        Fast database fuzzy text search with word-boundary matching.
+        Only returns results that contain actual words from the query.
+        """
+        query_words = query.lower().split()
         
+        if not query_words:
+            return []
+        
+        # Search for procedures that might match
+        search_term = f"%{query_words[0]}%"
         procedures = self.db.query(Procedure).filter(
             Procedure.description.ilike(search_term)
-        ).limit(limit * 2).all()  # Get extra for scoring
+        ).limit(limit * 5).all()  # Get extra for strict filtering
         
         matches = []
         for proc in procedures:
             score = self._calculate_match_score(query, proc.description)
-            matches.append({
-                "cpt_code": proc.cpt_code,
-                "description": proc.description,
-                "category": proc.category,
-                "medicare_rate": proc.medicare_rate,
-                "match_score": score
-            })
+            
+            # Only include if score meets minimum threshold
+            if score >= 0.3:  # Pre-filter low scores
+                matches.append({
+                    "cpt_code": proc.cpt_code,
+                    "description": proc.description,
+                    "category": proc.category,
+                    "medicare_rate": proc.medicare_rate,
+                    "match_score": score
+                })
         
         # Sort by score
         matches.sort(key=lambda x: x["match_score"], reverse=True)
@@ -194,33 +215,25 @@ If unsure, return fewer codes rather than guessing.
     
     def _duckduckgo_search(self, query: str, limit: int) -> List[Dict]:
         """
-        Use DuckDuckGo web search to find CPT codes.
+        Use DuckDuckGo web search to find CPT codes (using new ddgs package).
         """
         try:
-            # Initialize DuckDuckGo client
-            ddg_client = DuckDuckGoSearchClient()
-            
             # Search for CPT code information
             search_query = f"{query} CPT code medical procedure"
             
-            # Use text search to find CPT code info
-            from duckduckgo_search import DDGS
+            # Use new ddgs API
+            from ddgs import DDGS
             
             results = []
-            with DDGS() as ddgs:
-                search_results = ddgs.text(
-                    keywords=search_query,
-                    region='wt-wt',
-                    safesearch='moderate',
-                    max_results=10
-                )
-                
-                if search_results:
-                    search_results = list(search_results)
-                else:
-                    search_results = []
+            ddgs = DDGS()
+            search_results = ddgs.text(search_query, max_results=10)
             
-            # Extract CPT codes from search results
+            if search_results:
+                search_results = list(search_results)
+            else:
+                search_results = []
+            
+            # Extract CPT codes from search results using regex
             cpt_codes_found = set()
             text_snippets = []
             
@@ -235,7 +248,7 @@ If unsure, return fewer codes rather than guessing.
                 for code in potential_cpts:
                     cpt_codes_found.add(code)
             
-            # Use LLM to validate and rank the found CPT codes
+            # Use LLM to validate and rank the found CPT codes (if any)
             if cpt_codes_found:
                 cpt_list = list(cpt_codes_found)[:limit]
                 
